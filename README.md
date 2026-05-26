@@ -85,6 +85,15 @@ works** — AI just improves accuracy when budget/credentials exist
   run outside ConjureOS.
 - **Settings** — account, privacy/encryption status, and inference engine controls.
 
+## Styling
+
+Uses the official ConjureOS design system, [`@conjureos/ui`](https://www.npmjs.com/package/@conjureos/ui)
+("Modern Whimsy"), so the app matches the OS. `dist/ui.css` is imported in
+`src/main.tsx` and `<html>` carries `class="cui-tokens"`; the app's local CSS
+tokens (`--accent`, `--bg`, …) alias the `--cui-*` palette, so a future OS
+restyle propagates automatically. Inside ConjureOS the same stylesheet is also
+served at `/_conjureos/ui/v1.css`.
+
 ## Configuration
 
 See `.env.example`. The important switch is `VITE_FINANCE_API` (`mock` default,

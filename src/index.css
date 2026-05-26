@@ -1,18 +1,21 @@
+/* Tokens are aliased onto the official @conjureos/ui design system
+   (--cui-*, defined by `cui-tokens` on <html>). Changing the OS palette
+   propagates here automatically; component CSS keeps using these names. */
 :root {
-  --bg: #0b0f17;
-  --bg-elev: #121826;
-  --bg-elev-2: #1a2233;
-  --border: #232c3e;
-  --text: #e6ebf2;
-  --text-dim: #9aa6b8;
-  --text-faint: #66718a;
-  --accent: #5b8cff;
-  --accent-soft: #1e2c4d;
-  --good: #22c55e;
-  --bad: #ef4444;
-  --warn: #eab308;
-  --radius: 12px;
-  --radius-sm: 8px;
+  --bg: var(--cui-bg);
+  --bg-elev: var(--cui-bg-1);
+  --bg-elev-2: var(--cui-bg-2);
+  --border: var(--cui-border);
+  --text: var(--cui-fg);
+  --text-dim: var(--cui-fg-mute);
+  --text-faint: var(--cui-fg-dim);
+  --accent: var(--cui-accent);
+  --accent-soft: var(--cui-accent-mute);
+  --good: var(--cui-success);
+  --bad: var(--cui-error);
+  --warn: var(--cui-warn);
+  --radius: var(--cui-radius);
+  --radius-sm: var(--cui-radius-sm);
   color-scheme: dark;
 }
 
@@ -30,7 +33,7 @@ body,
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--cui-font-sans, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif);
   font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
