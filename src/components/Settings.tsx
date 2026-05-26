@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { useFinance } from "../store/FinanceContext";
 import { getTierContext, setTierContext, type InferenceBudget } from "../orchestrator";
+import { useHostUser } from "../platform/useHostUser";
 
 const API_MODE = (import.meta.env.VITE_FINANCE_API as string) || "mock";
 const INFERENCE_MODE = (import.meta.env.VITE_INFERENCE_PROVIDER as string) || "heuristic";
 
 export function Settings() {
   const { orchestrator } = useFinance();
+  const { user, hasBridge, loading: userLoading } = useHostUser();
   const [budget, setBudget] = useState<InferenceBudget | null>(null);
   const [byk, setByk] = useState(getTierContext().userApiKey ?? "");
   const [saved, setSaved] = useState(false);
@@ -29,6 +31,46 @@ export function Settings() {
           <div className="page-title">Settings</div>
           <div className="page-sub">How your data flows and who can read it</div>
         </div>
+      </div>
+
+      <div className="card" style={{ marginBottom: 16 }}>
+        <div className="card-title">Account</div>
+        <div className="row" style={{ gap: 14 }}>
+          <span className={`avatar${user ? " on" : ""}`} style={{ width: 44, height: 44, fontSize: 18 }}>
+            {userLoading ? "…" : user ? (user.email?.[0]?.toUpperCase() ?? "U") : "👤"}
+          </span>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontWeight: 700, fontSize: 15 }}>
+              {userLoading
+                ? "Checking session…"
+                : user
+                  ? (user.email ?? "Signed in")
+                  : hasBridge
+                    ? "Signed out"
+                    : "Running standalone"}
+            </div>
+            <div className="muted" style={{ fontSize: 13 }}>
+              {user
+                ? "Signed in via ConjureOS single sign-on"
+                : hasBridge
+                  ? "Sign in to ConjureOS to sync across devices"
+                  : "No ConjureOS host detected — using local mock data"}
+            </div>
+          </div>
+        </div>
+        {user && (
+          <div style={{ marginTop: 14 }}>
+            <Line label="Email" value={user.email ?? "—"} />
+            <Line label="User ID" value={`${user.id.slice(0, 8)}…${user.id.slice(-4)}`} />
+            <Line label="Identity source" value="ConjureOS SSO (default-app bridge)" />
+          </div>
+        )}
+        {!user && (
+          <p className="muted" style={{ fontSize: 13, marginTop: 12 }}>
+            As a ConjureOS default app, Conjure Finance reuses your OS session — it never asks for a
+            second login. Your encryption key is still derived locally and never shared with the host.
+          </p>
+        )}
       </div>
 
       <div className="grid grid-2">

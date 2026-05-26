@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { useFinance } from "../store/FinanceContext";
+import { UserBadge } from "./UserBadge";
 
 const NAV = [
   { to: "/", label: "Dashboard", icon: "📊", end: true },
@@ -49,6 +50,7 @@ export function Layout() {
         <div className="nav-link faint" style={{ fontSize: 11, cursor: "default" }}>
           🔒 End-to-end encrypted
         </div>
+        <UserBadge />
       </aside>
       <main className="main">
         <Outlet />

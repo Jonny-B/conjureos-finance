@@ -14,15 +14,18 @@ import type { EncryptedRecord, PullResult, PushItem, RecordKind, SyncTransport }
 export interface HttpTransportConfig {
   baseUrl: string;
   anonKey: string;
-  /** Returns the current Supabase user JWT, or null if signed out. */
-  getAccessToken: () => string | null;
+  /**
+   * Returns the current Supabase user JWT, or null if signed out. May be async:
+   * under ConjureOS SSO the token is fetched fresh from the host per call.
+   */
+  getAccessToken: () => string | null | Promise<string | null>;
 }
 
 export class HttpSyncTransport implements SyncTransport {
   constructor(private cfg: HttpTransportConfig) {}
 
   private async call<T>(path: string, body: unknown): Promise<T> {
-    const token = this.cfg.getAccessToken();
+    const token = await this.cfg.getAccessToken();
     if (!token) throw new FinanceApiError("not signed in", "unauthorized");
 
     let res: Response;

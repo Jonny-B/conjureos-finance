@@ -79,7 +79,11 @@ works** — AI just improves accuracy when budget/credentials exist
 - **Review** — the orchestrator's uncertainty queue; run it, confirm/override.
 - **Budgets** — monthly caps with live progress against current-month spend.
 - **Categories** — system + custom categories.
-- **Settings** — privacy/encryption status and inference engine controls.
+- **Account** — as a ConjureOS default app it reuses the OS session via SSO
+  (`window.__conjureos.auth`); a sidebar user badge shows who's signed in, and
+  Settings shows the account + identity source. Degrades to "standalone" when
+  run outside ConjureOS.
+- **Settings** — account, privacy/encryption status, and inference engine controls.
 
 ## Configuration
 

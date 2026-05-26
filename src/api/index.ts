@@ -7,6 +7,7 @@ import { MockFinanceApi } from "./mock/mockApi";
 import { SyncedFinanceApi } from "./synced/syncedApi";
 import { HttpSyncTransport } from "./sync/httpTransport";
 import { Vault } from "../crypto/vault";
+import { getHostAccessToken } from "../platform/host";
 
 export type { FinanceApi } from "./contract";
 export { FinanceApiError } from "./contract";
@@ -32,7 +33,8 @@ export function buildFinanceApi(opts: BuildApiOptions = {}): FinanceApi {
     const transport = new HttpSyncTransport({
       baseUrl,
       anonKey,
-      getAccessToken: opts.getAccessToken ?? (() => null),
+      // Default to ConjureOS SSO: reuse the host's signed-in session token.
+      getAccessToken: opts.getAccessToken ?? getHostAccessToken,
     });
     return new SyncedFinanceApi(transport, opts.vault ?? vault);
   }

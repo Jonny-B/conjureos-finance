@@ -405,6 +405,77 @@ button {
   flex-wrap: wrap;
 }
 
+/* ---- user badge ---- */
+.user-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 7px 8px;
+  color: var(--text-dim);
+}
+.user-badge:hover {
+  background: var(--bg-elev-2);
+  border-color: var(--border);
+  color: var(--text);
+}
+.avatar {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 700;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border);
+  position: relative;
+}
+.avatar.on {
+  background: linear-gradient(135deg, var(--accent), #8b5cf6);
+  color: #fff;
+  border-color: transparent;
+}
+.avatar.on::after {
+  content: "";
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--good);
+  border: 2px solid var(--bg-elev);
+}
+.user-badge-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+.user-badge-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.user-badge-sub {
+  font-size: 11px;
+  color: var(--text-faint);
+}
+@media (max-width: 860px) {
+  .user-badge-text {
+    display: none;
+  }
+}
+
 .tooltip-box {
   background: var(--bg-elev-2);
   border: 1px solid var(--border);
