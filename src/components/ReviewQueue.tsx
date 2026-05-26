@@ -51,7 +51,7 @@ export function ReviewQueue() {
           <div className="page-title">Review</div>
           <div className="page-sub">Transactions the orchestrator wasn’t sure about</div>
         </div>
-        <button className="btn primary" onClick={runOrchestrator} disabled={running}>
+        <button className="cui-button cui-button--primary" onClick={runOrchestrator} disabled={running}>
           {running ? "Categorizing…" : "Run orchestrator"}
         </button>
       </div>
@@ -70,7 +70,7 @@ export function ReviewQueue() {
       {loading ? (
         <Spinner />
       ) : queue.length === 0 ? (
-        <div className="card empty">
+        <div className="cui-card empty">
           🎉 Nothing to review. The orchestrator handled everything it was confident about.
           <div className="muted" style={{ marginTop: 8 }}>
             Run it again after importing new transactions.
@@ -82,7 +82,7 @@ export function ReviewQueue() {
             const override = overrides[t.id];
             const chosen = override !== undefined ? override : t.categorization.suggestedCategoryId;
             return (
-              <div key={t.id} className="card">
+              <div key={t.id} className="cui-card">
                 <div className="row between wrap" style={{ gap: 12 }}>
                   <div>
                     <div className="row" style={{ gap: 10 }}>
@@ -114,7 +114,7 @@ export function ReviewQueue() {
                         onChange={(c) => setOverrides((o) => ({ ...o, [t.id]: c }))}
                       />
                     </div>
-                    <button className="btn primary" onClick={() => accept(t)}>
+                    <button className="cui-button cui-button--primary" onClick={() => accept(t)}>
                       Confirm
                     </button>
                   </div>

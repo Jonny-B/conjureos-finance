@@ -33,7 +33,7 @@ export function Settings() {
         </div>
       </div>
 
-      <div className="card" style={{ marginBottom: 16 }}>
+      <div className="cui-card" style={{ marginBottom: 16 }}>
         <div className="card-title">Account</div>
         <div className="row" style={{ gap: 14 }}>
           <span className={`avatar${user ? " on" : ""}`} style={{ width: 44, height: 44, fontSize: 18 }}>
@@ -74,7 +74,7 @@ export function Settings() {
       </div>
 
       <div className="grid grid-2">
-        <div className="card">
+        <div className="cui-card">
           <div className="card-title">Privacy & data</div>
           <Line label="Data source" value={API_MODE === "synced" ? "Encrypted sync (Supabase)" : "Local mock (no backend)"} />
           <Line
@@ -89,7 +89,7 @@ export function Settings() {
           </p>
         </div>
 
-        <div className="card">
+        <div className="cui-card">
           <div className="card-title">Categorization orchestrator</div>
           <Line label="Mode" value={INFERENCE_MODE === "anthropic" ? "AI (Anthropic) + rules" : "Rules / heuristic"} />
           <Line
@@ -110,13 +110,13 @@ export function Settings() {
               <label>Your Anthropic key (BYK fallback)</label>
               <div className="row" style={{ gap: 8 }}>
                 <input
-                  className="input"
+                  className="cui-input"
                   type="password"
                   placeholder="sk-ant-…"
                   value={byk}
                   onChange={(e) => setByk(e.target.value)}
                 />
-                <button className="btn primary" onClick={saveKey}>{saved ? "Saved" : "Save"}</button>
+                <button className="cui-button cui-button--primary" onClick={saveKey}>{saved ? "Saved" : "Save"}</button>
               </div>
               <span className="faint" style={{ fontSize: 12 }}>
                 Stored in memory for this session only.

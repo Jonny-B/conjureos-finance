@@ -67,17 +67,17 @@ export function Budgets() {
           <div className="page-title">Budgets</div>
           <div className="page-sub">Monthly spending caps and where you stand this month</div>
         </div>
-        <button className="btn primary" onClick={() => setAdding((a) => !a)}>
+        <button className="cui-button cui-button--primary" onClick={() => setAdding((a) => !a)}>
           {adding ? "Cancel" : "+ New budget"}
         </button>
       </div>
 
       {adding && (
-        <div className="card" style={{ marginBottom: 16 }}>
+        <div className="cui-card" style={{ marginBottom: 16 }}>
           <div className="row wrap" style={{ gap: 12, alignItems: "flex-end" }}>
             <div className="field" style={{ flex: 1, minWidth: 180 }}>
               <label>Category</label>
-              <select className="select" value={newCat} onChange={(e) => setNewCat(e.target.value)}>
+              <select className="cui-input" value={newCat} onChange={(e) => setNewCat(e.target.value)}>
                 <option value="">Select…</option>
                 {categories
                   .filter((c) => c.id !== "cat_income")
@@ -91,7 +91,7 @@ export function Budgets() {
             <div className="field" style={{ width: 160 }}>
               <label>Monthly limit ($)</label>
               <input
-                className="input"
+                className="cui-input"
                 type="number"
                 min="0"
                 step="10"
@@ -99,7 +99,7 @@ export function Budgets() {
                 onChange={(e) => setNewLimit(e.target.value)}
               />
             </div>
-            <button className="btn primary" onClick={addBudget}>Save</button>
+            <button className="cui-button cui-button--primary" onClick={addBudget}>Save</button>
           </div>
         </div>
       )}
@@ -107,7 +107,7 @@ export function Budgets() {
       {loading ? (
         <Spinner />
       ) : rows.length === 0 ? (
-        <div className="card empty">No budgets yet. Create one to track a category.</div>
+        <div className="cui-card empty">No budgets yet. Create one to track a category.</div>
       ) : (
         <div className="grid" style={{ gap: 12 }}>
           {rows.map((r) => {
@@ -115,7 +115,7 @@ export function Budgets() {
             const pct = Math.min(100, Math.round(r.ratio * 100));
             const barColor = over ? "var(--bad)" : r.ratio > 0.8 ? "var(--warn)" : r.color;
             return (
-              <div key={r.budget.id} className="card">
+              <div key={r.budget.id} className="cui-card">
                 <div className="row between" style={{ marginBottom: 8 }}>
                   <span className="row" style={{ gap: 8 }}>
                     <span className="dot" style={{ background: r.color }} /> <strong>{r.categoryName}</strong>
@@ -124,7 +124,7 @@ export function Budgets() {
                     <span className={over ? "neg" : "muted"}>
                       {formatCurrency(r.spentCents)} of {formatCurrency(r.limitCents)}
                     </span>
-                    <button className="btn ghost sm" onClick={() => remove(r.budget)}>Remove</button>
+                    <button className="cui-button cui-button--ghost btn-sm" onClick={() => remove(r.budget)}>Remove</button>
                   </span>
                 </div>
                 <div className="bar">

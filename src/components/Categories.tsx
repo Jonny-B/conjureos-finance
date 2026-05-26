@@ -32,16 +32,16 @@ export function Categories() {
         </div>
       </div>
 
-      <div className="card" style={{ marginBottom: 16 }}>
+      <div className="cui-card" style={{ marginBottom: 16 }}>
         <div className="card-title">New category</div>
         <div className="row wrap" style={{ gap: 10, alignItems: "flex-end" }}>
           <div className="field" style={{ width: 70 }}>
             <label>Icon</label>
-            <input className="input" value={icon} maxLength={2} onChange={(e) => setIcon(e.target.value)} />
+            <input className="cui-input" value={icon} maxLength={2} onChange={(e) => setIcon(e.target.value)} />
           </div>
           <div className="field" style={{ flex: 1, minWidth: 160 }}>
             <label>Name</label>
-            <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Pets" />
+            <input className="cui-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Pets" />
           </div>
           <div className="field">
             <label>Color</label>
@@ -62,11 +62,11 @@ export function Categories() {
               ))}
             </div>
           </div>
-          <button className="btn primary" onClick={add}>Add</button>
+          <button className="cui-button cui-button--primary" onClick={add}>Add</button>
         </div>
       </div>
 
-      <div className="card" style={{ padding: 0 }}>
+      <div className="cui-card" style={{ padding: 0 }}>
         <table className="table">
           <thead>
             <tr>
@@ -79,7 +79,7 @@ export function Categories() {
             {categories.map((c) => (
               <tr key={c.id}>
                 <td>
-                  <span className="chip">
+                  <span className="cui-chip">
                     <span className="dot" style={{ background: c.color }} />
                     {c.icon} {c.name}
                   </span>
@@ -87,7 +87,7 @@ export function Categories() {
                 <td className="faint">{c.isSystem ? "System" : "Custom"}</td>
                 <td style={{ textAlign: "right" }}>
                   {!c.isSystem && (
-                    <button className="btn ghost sm" onClick={() => remove(c)}>Delete</button>
+                    <button className="cui-button cui-button--ghost btn-sm" onClick={() => remove(c)}>Delete</button>
                   )}
                 </td>
               </tr>

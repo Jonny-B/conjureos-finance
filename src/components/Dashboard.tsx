@@ -56,7 +56,7 @@ export function Dashboard() {
           {RANGES.map((r, i) => (
             <button
               key={r.label}
-              className={`btn sm${i === rangeIdx ? " primary" : ""}`}
+              className={`cui-button btn-sm${i === rangeIdx ? " cui-button--primary" : ""}`}
               onClick={() => setRangeIdx(i)}
             >
               {r.label}
@@ -81,22 +81,22 @@ export function Dashboard() {
           </div>
 
           <div className="grid grid-2">
-            <div className="card">
+            <div className="cui-card">
               <div className="card-title">Spending by category</div>
               <CategoryPie data={data} />
             </div>
-            <div className="card">
+            <div className="cui-card">
               <div className="card-title">Monthly spend vs income</div>
               <MonthlyChart data={data} />
             </div>
           </div>
 
           <div className="grid grid-2">
-            <div className="card">
+            <div className="cui-card">
               <div className="card-title">Category breakdown</div>
               <CategoryBars data={data} />
             </div>
-            <div className="card">
+            <div className="cui-card">
               <div className="card-title">Top merchants</div>
               <table className="table">
                 <tbody>
@@ -124,7 +124,7 @@ export function Dashboard() {
 
 function Stat({ label, value, cls }: { label: string; value: string; cls?: string }) {
   return (
-    <div className="card">
+    <div className="cui-card">
       <div className="stat-label">{label}</div>
       <div className={`stat ${cls ?? ""}`}>{value}</div>
     </div>

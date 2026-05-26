@@ -150,13 +150,8 @@ button {
 }
 
 /* ---- cards / grid ---- */
-.card {
-  background: var(--bg-elev);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 18px;
-}
-
+/* Card surfaces use .cui-card (see @conjureos/ui). .card-title is the
+   app-specific section label cui doesn't provide. */
 .card-title {
   font-size: 13px;
   color: var(--text-dim);
@@ -200,19 +195,7 @@ button {
 }
 
 /* ---- chips / badges ---- */
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 3px 9px;
-  border-radius: 999px;
-  background: var(--bg-elev-2);
-  font-size: 12px;
-  font-weight: 500;
-  border: 1px solid var(--border);
-  white-space: nowrap;
-}
-
+/* Chips use .cui-chip; status uses .cui-pill (+ variant). */
 .dot {
   width: 9px;
   height: 9px;
@@ -221,78 +204,17 @@ button {
   flex: none;
 }
 
-.status {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 999px;
+/* App-local primitive modifiers layered on @conjureos/ui classes. */
+/* Neutral status pill (uncategorized) — cui-pill has no muted variant. */
+.cui-ui .cui-pill.pill-neutral {
+  background: var(--cui-bg-2);
+  border-color: var(--cui-border);
+  color: var(--cui-fg-mute);
 }
-.status.auto {
-  background: #15324a;
-  color: #7cc4ff;
-}
-.status.confirmed {
-  background: #103225;
-  color: #5be59a;
-}
-.status.needs_review {
-  background: #3a3010;
-  color: #f1cd57;
-}
-.status.uncategorized {
-  background: #2a2f3c;
-  color: var(--text-dim);
-}
-
-/* ---- buttons ---- */
-.btn {
-  background: var(--bg-elev-2);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 8px 14px;
-  font-weight: 600;
-  font-size: 13px;
-  transition: background 0.12s;
-}
-.btn:hover {
-  background: #232f47;
-}
-.btn.primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: white;
-}
-.btn.primary:hover {
-  background: #4d7df0;
-}
-.btn.ghost {
-  background: transparent;
-}
-.btn:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-.btn.sm {
-  padding: 5px 10px;
-  font-size: 12px;
-}
-
-/* ---- inputs ---- */
-.input,
-.select {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text);
-  padding: 8px 11px;
-  font: inherit;
-  width: 100%;
-}
-.input:focus,
-.select:focus {
-  outline: none;
-  border-color: var(--accent);
+/* Small button — cui-button has no size modifier. */
+.cui-ui .cui-button.btn-sm {
+  padding: var(--cui-space-1) var(--cui-space-3);
+  font-size: var(--cui-text-sm);
 }
 
 .field {
@@ -346,12 +268,12 @@ button {
   align-items: center;
   margin-bottom: 16px;
 }
-.toolbar .input {
+.toolbar input.cui-input {
   width: auto;
   flex: 1;
   min-width: 200px;
 }
-.toolbar .select {
+.toolbar select.cui-input {
   width: auto;
 }
 

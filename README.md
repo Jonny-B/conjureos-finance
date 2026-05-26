@@ -89,10 +89,14 @@ works** — AI just improves accuracy when budget/credentials exist
 
 Uses the official ConjureOS design system, [`@conjureos/ui`](https://www.npmjs.com/package/@conjureos/ui)
 ("Modern Whimsy"), so the app matches the OS. `dist/ui.css` is imported in
-`src/main.tsx` and `<html>` carries `class="cui-tokens"`; the app's local CSS
-tokens (`--accent`, `--bg`, …) alias the `--cui-*` palette, so a future OS
-restyle propagates automatically. Inside ConjureOS the same stylesheet is also
-served at `/_conjureos/ui/v1.css`.
+`src/main.tsx` and `<html>` carries `class="cui-ui"` (tokens + primitives).
+Components use the `cui-*` primitive classes — `cui-card`, `cui-button`
+(`--primary`/`--ghost`), `cui-input`, `cui-pill`, `cui-chip` — with two
+app-local modifiers (`btn-sm`, `pill-neutral`) layered on top. App-specific
+structures the system doesn't cover (sidebar/nav, tables, stat tiles, progress
+bars) keep local classes whose tokens (`--accent`, `--bg`, …) alias the
+`--cui-*` palette, so an OS restyle propagates automatically. Inside ConjureOS
+the same stylesheet is also served at `/_conjureos/ui/v1.css`.
 
 ## Configuration
 

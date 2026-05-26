@@ -66,12 +66,12 @@ export function Transactions() {
 
       <div className="toolbar">
         <input
-          className="input"
+          className="cui-input"
           placeholder="Search merchant or description…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <select className="select" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
+        <select className="cui-input" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
           <option value="">All categories</option>
           {categories.map((c) => (
             <option key={c.id} value={c.id}>
@@ -79,7 +79,7 @@ export function Transactions() {
             </option>
           ))}
         </select>
-        <select className="select" value={accountId} onChange={(e) => setAccountId(e.target.value)}>
+        <select className="cui-input" value={accountId} onChange={(e) => setAccountId(e.target.value)}>
           <option value="">All accounts</option>
           {accounts.map((a) => (
             <option key={a.id} value={a.id}>
@@ -87,7 +87,7 @@ export function Transactions() {
             </option>
           ))}
         </select>
-        <select className="select" value={status} onChange={(e) => setStatus(e.target.value)}>
+        <select className="cui-input" value={status} onChange={(e) => setStatus(e.target.value)}>
           <option value="">Any status</option>
           {STATUSES.map((s) => (
             <option key={s} value={s}>
@@ -95,7 +95,7 @@ export function Transactions() {
             </option>
           ))}
         </select>
-        <select className="select" value={sort} onChange={(e) => setSort(e.target.value as TransactionQuery["sort"])}>
+        <select className="cui-input" value={sort} onChange={(e) => setSort(e.target.value as TransactionQuery["sort"])}>
           <option value="date_desc">Newest</option>
           <option value="date_asc">Oldest</option>
           <option value="amount_asc">Amount ↑ (spend)</option>
@@ -103,7 +103,7 @@ export function Transactions() {
         </select>
       </div>
 
-      <div className="card" style={{ padding: 0 }}>
+      <div className="cui-card" style={{ padding: 0 }}>
         <table className="table">
           <thead>
             <tr>
@@ -131,7 +131,7 @@ export function Transactions() {
                       />
                     </div>
                   ) : (
-                    <button className="btn ghost sm" onClick={() => setEditing(t.id)} title="Recategorize">
+                    <button className="cui-button cui-button--ghost btn-sm" onClick={() => setEditing(t.id)} title="Recategorize">
                       <CategoryChip category={catMap.get(t.categorization.categoryId ?? "")} />
                     </button>
                   )}
