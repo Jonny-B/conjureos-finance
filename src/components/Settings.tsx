@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useFinance } from "../store/FinanceContext";
 import { getTierContext, setTierContext, type InferenceBudget } from "../orchestrator";
 import { useHostUser } from "../platform/useHostUser";
+import { ConnectedAccounts } from "./ConnectedAccounts";
 
 const API_MODE = (import.meta.env.VITE_FINANCE_API as string) || "mock";
 const INFERENCE_MODE = (import.meta.env.VITE_INFERENCE_PROVIDER as string) || "heuristic";
@@ -72,6 +73,8 @@ export function Settings() {
           </p>
         )}
       </div>
+
+      <ConnectedAccounts signedIn={Boolean(user)} />
 
       <div className="grid grid-2">
         <div className="cui-card">
