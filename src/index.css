@@ -1,3 +1,8 @@
+/* Pull in the official @conjureos/ui design system as CSS (not a JS module
+   import) so importmap-based bundlers don't try to load a text/css file as a
+   JavaScript module. Must stay at the very top: CSS @import precedes all rules. */
+@import "@conjureos/ui/dist/ui.css";
+
 /* Tokens are aliased onto the official @conjureos/ui design system
    (--cui-*, defined by `cui-tokens` on <html>). Changing the OS palette
    propagates here automatically; component CSS keeps using these names. */
