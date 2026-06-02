@@ -4,9 +4,24 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Privacy-first personal finance app (Mint/Rocket Money clone) for ConjureOS. End-to-end encrypted; the server never sees your transactions.",
+  "conjureos": {
+    "displayName": "Conjure Finance",
+    "icon": "💰",
+    "permissions": [
+      "ai.complete",
+      "vfs.read",
+      "vfs.write"
+    ],
+    "promptSuggestions": [
+      "Categorize my recent transactions",
+      "How much did I spend on groceries this month?",
+      "Show my spending by category"
+    ]
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:inline": "tsc -b && vite build --mode inline",
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
     "test": "vitest run"
@@ -25,6 +40,7 @@
     "jsdom": "^25.0.1",
     "typescript": "^5.6.3",
     "vite": "^5.4.11",
+    "vite-plugin-singlefile": "^2.3.3",
     "vitest": "^2.1.8"
   }
 }
