@@ -11,6 +11,26 @@ export interface VaultMeta {
 
 const META_KEY = "conjure.finance.vaultMeta";
 
+// ConjureOS runs apps in a sandboxed iframe where localStorage can throw a
+// SecurityError. Fall back to an in-memory copy so the vault degrades (meta
+// just won't persist across reloads) instead of crashing.
+let memoryMeta: string | null = null;
+function readMeta(): string | null {
+  try {
+    return localStorage.getItem(META_KEY);
+  } catch {
+    return memoryMeta;
+  }
+}
+function writeMeta(value: string): void {
+  memoryMeta = value;
+  try {
+    localStorage.setItem(META_KEY, value);
+  } catch {
+    /* sandboxed / private mode — in-memory copy above is the fallback */
+  }
+}
+
 export class Vault {
   private key: CryptoKey | null = null;
 
@@ -24,7 +44,7 @@ export class Vault {
   }
 
   loadMeta(): VaultMeta | null {
-    const raw = localStorage.getItem(META_KEY);
+    const raw = readMeta();
     return raw ? (JSON.parse(raw) as VaultMeta) : null;
   }
 
@@ -33,7 +53,7 @@ export class Vault {
     const salt = newSalt();
     const key = await deriveKey(passphrase, salt);
     const verifier = await keyVerifier(key);
-    localStorage.setItem(META_KEY, JSON.stringify({ salt, verifier } satisfies VaultMeta));
+    writeMeta(JSON.stringify({ salt, verifier } satisfies VaultMeta));
     this.key = key;
   }
 
