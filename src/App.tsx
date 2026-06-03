@@ -1,4 +1,10 @@
-import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
+// MemoryRouter (in-memory history) instead of HashRouter: ConjureOS runs apps
+// in a sandboxed, opaque-origin srcdoc iframe where the History API throws a
+// SecurityError (about:srcdoc + null origin). HashRouter touches window.history
+// on init and crashes the app at load ("Script error."); MemoryRouter keeps all
+// routing state in memory and never touches window.history/location, so it works
+// both inside ConjureOS and as a standalone deploy.
+import { MemoryRouter, Navigate, Route, Routes } from "react-router-dom";
 import { FinanceProvider } from "./store/FinanceContext";
 import { Layout } from "./components/Layout";
 import { Dashboard } from "./components/Dashboard";
@@ -11,7 +17,7 @@ import { Settings } from "./components/Settings";
 export function App() {
   return (
     <FinanceProvider>
-      <HashRouter>
+      <MemoryRouter>
         <Routes>
           <Route element={<Layout />}>
             <Route index element={<Dashboard />} />
@@ -23,7 +29,7 @@ export function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
-      </HashRouter>
+      </MemoryRouter>
     </FinanceProvider>
   );
 }
