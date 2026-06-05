@@ -6,10 +6,27 @@
 // Everything here degrades gracefully: when the app runs standalone (e.g. plain
 // `npm run dev`, or as a non-default app), the bridge is absent and these
 // resolve to "signed out", so the app stays on its local/mock path.
+//
+// ConjureOS Phase 30 (cross-origin app isolation): apps now run at
+// <slug>.conjureos.app and cannot read the kernel's localStorage. Identity
+// reads MUST go through this bridge — no localStorage fallback exists.
+// `auth.whoami()` is the new safe identity op granted to ALL apps (vs
+// `getUser` / `getAccessToken` which stay built-in-only).
 
 export interface HostUser {
   id: string;
   email?: string;
+}
+
+/**
+ * ConjureOS Phase 30g — safe identity subset returned by `auth.whoami()`.
+ * Every field optional except `signedIn`. Granted to ALL apps.
+ */
+export interface HostWhoami {
+  signedIn: boolean;
+  email?: string;
+  persona?: string;
+  isAdmin?: boolean;
 }
 
 interface ConjureOSGlobal {
@@ -18,6 +35,12 @@ interface ConjureOSGlobal {
   auth?: {
     getUser: () => Promise<HostUser | null>;
     getAccessToken: () => Promise<string | null>;
+    /**
+     * Phase 30g — safe identity subset. Granted to ALL apps. Use this
+     * instead of getUser when you only need signedIn / email / persona
+     * / isAdmin and not the full user object or a token.
+     */
+    whoami?: () => Promise<HostWhoami>;
   };
 }
 
@@ -57,5 +80,20 @@ export async function getHostAccessToken(): Promise<string | null> {
     return await b.auth.getAccessToken();
   } catch {
     return null;
+  }
+}
+
+/**
+ * Phase 30g safe identity read. Returns `{ signedIn: false }` when no
+ * bridge is wired (e.g., `npm run dev`, older host, or any failure).
+ */
+export async function whoami(): Promise<HostWhoami> {
+  const b = bridge();
+  const fn = b?.auth?.whoami;
+  if (!fn) return { signedIn: false };
+  try {
+    return await fn();
+  } catch {
+    return { signedIn: false };
   }
 }
