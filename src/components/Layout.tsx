@@ -14,7 +14,7 @@ const NAV = [
 ];
 
 export function Layout() {
-  const { api, revision } = useFinance();
+  const { api, revision, runAnnouncement } = useFinance();
   const [reviewCount, setReviewCount] = useState(0);
 
   useEffect(() => {
@@ -56,7 +56,9 @@ export function Layout() {
       <main className="main">
         <Outlet />
       </main>
-      <RunToast />
+      {/* Key by announcement id so a fresh run remounts the toast and replays
+          its entrance animation even if one is already showing. */}
+      <RunToast key={runAnnouncement?.id ?? "none"} />
     </div>
   );
 }

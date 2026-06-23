@@ -16,11 +16,17 @@ describe("parseMonthInput", () => {
     expect(parseMonthInput("  SEPT ")).toEqual({ year: null, month: 9 });
   });
 
-  it("parses month + year in either order, incl. 2-digit year", () => {
+  it("parses month + 4-digit year in either order", () => {
     expect(parseMonthInput("February 2026")).toEqual({ year: 2026, month: 2 });
     expect(parseMonthInput("2026 February")).toEqual({ year: 2026, month: 2 });
-    expect(parseMonthInput("feb 26")).toEqual({ year: 2026, month: 2 });
     expect(parseMonthInput("March, 2025")).toEqual({ year: 2025, month: 3 });
+  });
+
+  it("ignores a bare 1-2 digit number (a day, not a year)", () => {
+    // "February 14" is a day; we scope to whole months, so the 14 is noise —
+    // it must NOT be read as the year 2014.
+    expect(parseMonthInput("February 14")).toEqual({ year: null, month: 2 });
+    expect(parseMonthInput("feb 26")).toEqual({ year: null, month: 2 });
   });
 
   it("returns null when no month is present", () => {

@@ -46,8 +46,12 @@ const MONTH_NAMES = [
  * month can be found. Handles:
  *   - ISO "YYYY-MM"            → { year, month }
  *   - "February" / "feb"        → { year: null, month: 2 }
- *   - "February 2026" / "feb 26"→ { year: 2026, month: 2 }   (2-digit year → 2000s)
+ *   - "February 2026"           → { year: 2026, month: 2 }
  *   - "2026 February"           → { year: 2026, month: 2 }
+ *
+ * Only explicit 4-digit years are honored. A bare 1-2 digit number is treated
+ * as noise (likely a day, e.g. "February 14"), NOT a year — we scope to whole
+ * months, so a day is irrelevant and guessing "14" → 2014 would be wrong.
  */
 export function parseMonthInput(input: string): ParsedMonth | null {
   if (typeof input !== "string") return null;
@@ -63,7 +67,7 @@ export function parseMonthInput(input: string): ParsedMonth | null {
     return null;
   }
 
-  // Token scan: find a month word + optional 4- or 2-digit year anywhere.
+  // Token scan: find a month word + optional 4-digit year anywhere.
   const tokens = s.split(/[\s,]+/).filter(Boolean);
   let month: number | null = null;
   let year: number | null = null;
@@ -74,11 +78,6 @@ export function parseMonthInput(input: string): ParsedMonth | null {
     }
     if (year == null && /^\d{4}$/.test(tok)) {
       year = Number(tok);
-      continue;
-    }
-    if (year == null && /^\d{2}$/.test(tok)) {
-      // 2-digit year → 2000s ("feb 26" → 2026).
-      year = 2000 + Number(tok);
       continue;
     }
   }

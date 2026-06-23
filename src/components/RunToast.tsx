@@ -28,7 +28,7 @@ export function RunToast() {
   const { result, source } = runAnnouncement;
 
   return (
-    <div className="toast" role="status" aria-live="polite" key={runAnnouncement.id}>
+    <div className="toast" role="status" aria-live="polite">
       <span className="toast-mark">🤖</span>
       <div className="toast-body">
         <div className="toast-title">

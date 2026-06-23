@@ -31,13 +31,22 @@ export function monthLabel(month: string): string {
   return new Date(y, m - 1, 1).toLocaleDateString("en-US", { month: "short", year: "2-digit" });
 }
 
+const pad = (n: number): string => String(n).padStart(2, "0");
+
+/** Local calendar date as YYYY-MM-DD. Uses local components, not toISOString
+ *  (UTC), so it matches how transaction dates are stored — otherwise a user
+ *  west of UTC in the evening would see tomorrow's date. */
+function localISO(d: Date): ISODate {
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
 export function todayISO(): ISODate {
-  return new Date().toISOString().slice(0, 10);
+  return localISO(new Date());
 }
 
 /** First day of the month `monthsBack` months ago. */
 export function monthsAgoISO(monthsBack: number): ISODate {
   const d = new Date();
   d.setMonth(d.getMonth() - monthsBack, 1);
-  return d.toISOString().slice(0, 10);
+  return localISO(d);
 }
