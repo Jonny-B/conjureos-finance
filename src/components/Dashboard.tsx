@@ -12,7 +12,8 @@ import {
   YAxis,
 } from "recharts";
 import { useFinance } from "../store/FinanceContext";
-import type { DashboardSummary } from "../api/types";
+import type { Account, DashboardSummary } from "../api/types";
+import { computeNetWorth } from "../analytics/networth";
 import { formatCompact, formatCurrency, monthLabel, monthsAgoISO, todayISO } from "../lib/format";
 import { Spinner } from "./common";
 
@@ -23,7 +24,7 @@ const RANGES = [
 ];
 
 export function Dashboard() {
-  const { api, revision } = useFinance();
+  const { api, revision, accounts } = useFinance();
   const [rangeIdx, setRangeIdx] = useState(1);
   const [data, setData] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -69,6 +70,8 @@ export function Dashboard() {
         <Spinner />
       ) : (
         <div className="grid" style={{ gap: 16 }}>
+          <NetWorthCard accounts={accounts} />
+
           <div className="grid grid-4">
             <Stat label="Spent" value={formatCurrency(data.totalSpentCents)} cls="neg" />
             <Stat label="Income" value={formatCurrency(data.totalIncomeCents)} cls="pos" />
@@ -119,6 +122,34 @@ export function Dashboard() {
         </div>
       )}
     </>
+  );
+}
+
+function NetWorthCard({ accounts }: { accounts: Account[] }) {
+  const nw = computeNetWorth(accounts);
+  if (accounts.length === 0) return null;
+  return (
+    <div className="cui-card">
+      <div className="row between wrap" style={{ gap: 16, alignItems: "flex-start" }}>
+        <div>
+          <div className="stat-label">Net worth</div>
+          <div className={`stat ${nw.netCents >= 0 ? "pos" : "neg"}`} style={{ fontSize: 30 }}>
+            {formatCurrency(nw.netCents)}
+          </div>
+          <div className="faint" style={{ fontSize: 12, marginTop: 2 }}>
+            {formatCurrency(nw.assetsCents)} assets · {formatCurrency(nw.liabilitiesCents)} debt
+          </div>
+        </div>
+        <div className="grid" style={{ gap: 6, minWidth: 240, flex: 1 }}>
+          {nw.rows.map((r) => (
+            <div key={r.accountId} className="row between" style={{ fontSize: 13 }}>
+              <span className="muted">{r.name}</span>
+              <span className={`amount ${r.isAsset ? "" : "neg"}`}>{formatCurrency(r.balanceCents)}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
 

@@ -16,6 +16,9 @@ import {
   type CategorizationOrchestrator,
   type CategorizationRunResult,
 } from "../orchestrator";
+import { detectRecurring, isSubscription, monthlyAmountCents } from "../analytics/recurring";
+import { suggestBudgets } from "../analytics/budgetSuggest";
+import { formatCurrency } from "../lib/format";
 import { registerHostActions } from "../platform/host";
 
 /** A categorization run worth announcing in the UI, tagged so repeat runs re-show. */
@@ -109,6 +112,44 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
         refresh();
         announceRun(result, "orchestrator");
         return { ...result, message: summarizeRun(result) };
+      },
+
+      findRecurring: async () => {
+        await api.ready();
+        const all = await api.queryTransactions({ limit: 10_000 });
+        const streams = detectRecurring(all.items);
+        const subs = streams.filter(isSubscription);
+        const monthlySubs = subs.reduce((a, s) => a + monthlyAmountCents(s), 0);
+        const bills = streams.filter((s) => s.direction === "outflow" && !isSubscription(s));
+        return {
+          subscriptionCount: subs.length,
+          monthlySubscriptionsCents: monthlySubs,
+          subscriptions: subs.map((s) => ({ name: s.merchantName, amountCents: Math.abs(s.avgAmountCents), cadence: s.cadence })),
+          billCount: bills.length,
+          message:
+            subs.length === 0
+              ? "No subscriptions detected yet."
+              : `Found ${subs.length} subscription${subs.length === 1 ? "" : "s"} costing about ${formatCurrency(monthlySubs)}/mo, plus ${bills.length} recurring bill${bills.length === 1 ? "" : "s"}.`,
+        };
+      },
+
+      buildBudgetFromHistory: async () => {
+        await api.ready();
+        const [all, cats] = await Promise.all([api.queryTransactions({ limit: 10_000 }), api.listCategories()]);
+        const suggestions = suggestBudgets({ transactions: all.items, categories: cats });
+        for (const s of suggestions) {
+          await api.upsertBudget({ categoryId: s.categoryId, period: "monthly", limitCents: s.suggestedLimitCents });
+        }
+        refresh();
+        const total = suggestions.reduce((a, s) => a + s.suggestedLimitCents, 0);
+        return {
+          created: suggestions.length,
+          totalLimitCents: total,
+          message:
+            suggestions.length === 0
+              ? "Not enough history yet to build a budget."
+              : `Set ${suggestions.length} monthly budgets from your spending history, ${formatCurrency(total)} total.`,
+        };
       },
     });
   }, [api, orchestrator, refresh, announceRun]);

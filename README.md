@@ -83,13 +83,41 @@ is free-text (`"February"`, `"Feb 2026"`, `"2026-02"`); omit it to cover every
 month. Month parsing lives in `src/orchestrator/month.ts`. Standalone (plain
 `npm run dev`) the registration is a no-op, so the app is unaffected.
 
+Three actions are exposed (manifest `conjureos.actions` + `registerHostActions`):
+
+- **`categorizeTransactions`** (`{ month? }`) — categorize, optionally one month.
+- **`findRecurring`** — summarize subscriptions + recurring bills ("what
+  subscriptions am I paying for?").
+- **`buildBudgetFromHistory`** — set monthly budgets from spending history
+  ("set up my budget").
+
+## Analytics (`src/analytics/`)
+
+Pure, dependency-free functions over the transaction set — no Plaid, no storage,
+so they work identically on the mock and the encrypted-sync API and are unit
+tested in `src/analytics/__tests__`:
+
+- **`recurring.ts`** — recurring/subscription detection. Monthly is
+  calendar-aware (a merchant seen ~once per month across several months), while
+  weekly/biweekly require regular spacing, so habitual spend (groceries, coffee)
+  is excluded. Powers the Recurring view + upcoming-bill/price-hike alerts.
+- **`networth.ts`** — assets − liabilities across linked accounts.
+- **`budgetSuggest.ts`** — per-category caps from the average of recent
+  completed months + a buffer (Rocket Money's budget-wizard mechanic).
+- **`alerts.ts`** — derived low-balance / over-budget / upcoming-bill /
+  price-hike nudges.
+
 ## Features
 
-- **Dashboard** — spending-by-category pie, monthly spend-vs-income bars,
-  category breakdown, top merchants, selectable time range.
+- **Dashboard** — net-worth summary, spending-by-category pie, monthly
+  spend-vs-income bars, category breakdown, top merchants, selectable range.
 - **Transactions** — full-text search, filter by category/account/status, sort.
-- **Review** — the orchestrator's uncertainty queue; run it, confirm/override.
-- **Budgets** — monthly caps with live progress against current-month spend.
+- **Recurring** — detected subscriptions, bills and income with cadence, next
+  charge date, and monthly totals.
+- **Review** — the categorizer's uncertainty queue; run it, confirm/override.
+- **Alerts** — low balance, over/near budget, upcoming bills, price increases.
+- **Budgets** — monthly caps with live progress, plus one-tap "Build from
+  history" to size every category from past spending.
 - **Categories** — system + custom categories.
 - **Account** — as a ConjureOS default app it reuses the OS session via SSO
   (`window.__conjureos.auth`); a sidebar user badge shows who's signed in, and

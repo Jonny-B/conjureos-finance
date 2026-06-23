@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useFinance, useCategoryMap } from "../store/FinanceContext";
 import type { Budget, BudgetProgress } from "../api/types";
+import { suggestBudgets, type BudgetSuggestion } from "../analytics/budgetSuggest";
 import { formatCurrency, monthsAgoISO, todayISO } from "../lib/format";
 import { Spinner } from "./common";
 
@@ -12,6 +13,8 @@ export function Budgets() {
   const [adding, setAdding] = useState(false);
   const [newCat, setNewCat] = useState("");
   const [newLimit, setNewLimit] = useState("");
+  const [suggestions, setSuggestions] = useState<BudgetSuggestion[] | null>(null);
+  const [applying, setApplying] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -60,6 +63,29 @@ export function Budgets() {
     refresh();
   }
 
+  async function previewSuggestions() {
+    if (suggestions) {
+      setSuggestions(null);
+      return;
+    }
+    const all = await api.queryTransactions({ limit: 10_000 });
+    setSuggestions(suggestBudgets({ transactions: all.items, categories }));
+  }
+
+  async function applySuggestions() {
+    if (!suggestions) return;
+    setApplying(true);
+    try {
+      for (const s of suggestions) {
+        await api.upsertBudget({ categoryId: s.categoryId, period: "monthly", limitCents: s.suggestedLimitCents });
+      }
+      setSuggestions(null);
+      refresh();
+    } finally {
+      setApplying(false);
+    }
+  }
+
   return (
     <>
       <div className="page-head">
@@ -67,10 +93,48 @@ export function Budgets() {
           <div className="page-title">Budgets</div>
           <div className="page-sub">Monthly spending caps and where you stand this month</div>
         </div>
-        <button className="cui-button cui-button--primary" onClick={() => setAdding((a) => !a)}>
-          {adding ? "Cancel" : "+ New budget"}
-        </button>
+        <div className="row" style={{ gap: 8 }}>
+          <button className="cui-button cui-button--ghost" onClick={previewSuggestions}>
+            {suggestions ? "Hide suggestions" : "✨ Build from history"}
+          </button>
+          <button className="cui-button cui-button--primary" onClick={() => setAdding((a) => !a)}>
+            {adding ? "Cancel" : "+ New budget"}
+          </button>
+        </div>
       </div>
+
+      {suggestions && (
+        <div className="cui-card" style={{ marginBottom: 16 }}>
+          <div className="row between wrap" style={{ gap: 12, marginBottom: 10 }}>
+            <div>
+              <strong>Suggested budgets</strong>
+              <div className="faint" style={{ fontSize: 12 }}>
+                Averaged from your recent months’ spending, plus 10% headroom.
+              </div>
+            </div>
+            <button className="cui-button cui-button--primary btn-sm" onClick={applySuggestions} disabled={applying || suggestions.length === 0}>
+              {applying ? "Applying…" : `Apply all ${suggestions.length}`}
+            </button>
+          </div>
+          {suggestions.length === 0 ? (
+            <div className="muted">Not enough history yet to suggest budgets.</div>
+          ) : (
+            <div className="grid" style={{ gap: 2 }}>
+              {suggestions.map((s) => (
+                <div key={s.categoryId} className="row between" style={{ fontSize: 13, padding: "4px 0" }}>
+                  <span className="row" style={{ gap: 8 }}>
+                    <span className="dot" style={{ background: catMap.get(s.categoryId)?.color ?? "#475569" }} />
+                    {s.categoryName}
+                  </span>
+                  <span className="muted">
+                    avg {formatCurrency(s.monthlyAvgCents)} → <strong style={{ color: "var(--text)" }}>{formatCurrency(s.suggestedLimitCents)}</strong>
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {adding && (
         <div className="cui-card" style={{ marginBottom: 16 }}>
