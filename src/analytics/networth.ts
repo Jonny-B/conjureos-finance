@@ -1,17 +1,19 @@
-// Net worth from linked accounts: assets minus liabilities. Credit/loan
-// balances are stored negative (a debt), so the net is simply the sum of every
-// balance. (Manual assets like a home or car will slot in here once there's a
-// store to persist them — a follow-up that needs a new encrypted record kind.)
+// Net worth: assets minus liabilities, across linked accounts AND user-entered
+// manual assets (home, car, mortgage). Credit/loan balances are stored negative
+// (a debt) and manual "debt" assets are owed amounts, so both subtract.
 
-import type { Account } from "../api/types";
+import type { Account, ManualAsset } from "../api/types";
 
 export interface NetWorthRow {
-  accountId: string;
+  /** account id or manual-asset id */
+  id: string;
   name: string;
-  institution: string;
-  type: Account["type"];
-  balanceCents: number;
+  /** institution for accounts, or the manual-asset kind label */
+  detail: string;
+  /** signed contribution to net worth (negative = liability) */
+  amountCents: number;
   isAsset: boolean;
+  source: "account" | "manual";
 }
 
 export interface NetWorthBreakdown {
@@ -23,7 +25,16 @@ export interface NetWorthBreakdown {
 
 const LIABILITY_TYPES = new Set<Account["type"]>(["credit", "loan"]);
 
-export function computeNetWorth(accounts: Account[]): NetWorthBreakdown {
+const MANUAL_KIND_LABEL: Record<ManualAsset["kind"], string> = {
+  property: "Property",
+  vehicle: "Vehicle",
+  cash: "Cash",
+  investment: "Investment",
+  other: "Other asset",
+  debt: "Debt",
+};
+
+export function computeNetWorth(accounts: Account[], manualAssets: ManualAsset[] = []): NetWorthBreakdown {
   let assetsCents = 0;
   let liabilitiesCents = 0;
   const rows: NetWorthRow[] = [];
@@ -31,15 +42,29 @@ export function computeNetWorth(accounts: Account[]): NetWorthBreakdown {
   for (const a of accounts) {
     const isAsset = !LIABILITY_TYPES.has(a.type);
     rows.push({
-      accountId: a.id,
+      id: a.id,
       name: a.name,
-      institution: a.institution,
-      type: a.type,
-      balanceCents: a.balanceCents,
+      detail: a.institution,
+      amountCents: a.balanceCents,
       isAsset,
+      source: "account",
     });
     if (isAsset) assetsCents += a.balanceCents;
     else liabilitiesCents += Math.abs(a.balanceCents);
+  }
+
+  for (const m of manualAssets) {
+    const isAsset = m.kind !== "debt";
+    rows.push({
+      id: m.id,
+      name: m.name,
+      detail: MANUAL_KIND_LABEL[m.kind],
+      amountCents: isAsset ? m.valueCents : -Math.abs(m.valueCents),
+      isAsset,
+      source: "manual",
+    });
+    if (isAsset) assetsCents += m.valueCents;
+    else liabilitiesCents += Math.abs(m.valueCents);
   }
 
   return { assetsCents, liabilitiesCents, netCents: assetsCents - liabilitiesCents, rows };

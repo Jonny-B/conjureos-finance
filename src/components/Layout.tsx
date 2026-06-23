@@ -10,9 +10,11 @@ type BadgeKey = "review" | "alerts";
 
 const NAV: { to: string; label: string; icon: string; end: boolean; badge?: BadgeKey }[] = [
   { to: "/", label: "Dashboard", icon: "📊", end: true },
+  { to: "/net-worth", label: "Net worth", icon: "💎", end: false },
   { to: "/transactions", label: "Transactions", icon: "🧾", end: false },
   { to: "/recurring", label: "Recurring", icon: "🔁", end: false },
   { to: "/budgets", label: "Budgets", icon: "🎯", end: false },
+  { to: "/goals", label: "Goals", icon: "🌱", end: false },
   { to: "/review", label: "Review", icon: "🔔", end: false, badge: "review" },
   { to: "/alerts", label: "Alerts", icon: "⚠️", end: false, badge: "alerts" },
   { to: "/categories", label: "Categories", icon: "🏷️", end: false },

@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { buildFinanceApi, type FinanceApi } from "../api";
-import type { Account, Category } from "../api/types";
+import type { Account, Category, ManualAsset } from "../api/types";
 import {
   buildOrchestrator,
   summarizeRun,
@@ -34,6 +34,7 @@ interface FinanceContextValue {
   orchestrator: CategorizationOrchestrator;
   categories: Category[];
   accounts: Account[];
+  manualAssets: ManualAsset[];
   /** bump to force dependent views to refetch */
   revision: number;
   refresh: () => void;
@@ -52,6 +53,7 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
   const orchestrator = useMemo(() => buildOrchestrator(api), [api]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
+  const [manualAssets, setManualAssets] = useState<ManualAsset[]>([]);
   const [revision, setRevision] = useState(0);
   const [loadingMeta, setLoadingMeta] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -79,10 +81,15 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
     (async () => {
       try {
         await api.ready();
-        const [cats, accs] = await Promise.all([api.listCategories(), api.listAccounts()]);
+        const [cats, accs, assets] = await Promise.all([
+          api.listCategories(),
+          api.listAccounts(),
+          api.listManualAssets(),
+        ]);
         if (cancelled) return;
         setCategories(cats);
         setAccounts(accs);
+        setManualAssets(assets);
         setError(null);
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load");
@@ -159,6 +166,7 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
     orchestrator,
     categories,
     accounts,
+    manualAssets,
     revision,
     refresh,
     loadingMeta,

@@ -65,7 +65,18 @@ describe("computeNetWorth", () => {
     expect(nw.assetsCents).toBe(482_300 + 1_204_500);
     expect(nw.liabilitiesCents).toBe(128_745);
     expect(nw.netCents).toBe(482_300 + 1_204_500 - 128_745);
-    expect(nw.rows.find((r) => r.type === "credit")!.isAsset).toBe(false);
+    const credit = nw.rows.find((r) => r.source === "account" && r.amountCents < 0);
+    expect(credit!.isAsset).toBe(false);
+  });
+
+  it("folds manual assets and debts into the totals", () => {
+    const nw = computeNetWorth(ACCOUNTS, [
+      { id: "a", name: "Home", kind: "property", valueCents: 40_000_000 },
+      { id: "b", name: "Mortgage", kind: "debt", valueCents: 25_000_000 },
+    ]);
+    expect(nw.assetsCents).toBe(482_300 + 1_204_500 + 40_000_000);
+    expect(nw.liabilitiesCents).toBe(128_745 + 25_000_000);
+    expect(nw.rows.find((r) => r.name === "Mortgage")!.amountCents).toBe(-25_000_000);
   });
 });
 

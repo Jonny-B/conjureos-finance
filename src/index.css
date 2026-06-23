@@ -329,6 +329,16 @@ button {
   background: var(--accent-soft);
 }
 
+/* Net-worth summary card on the dashboard is a link to the detail page. */
+.net-worth-card {
+  display: block;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+.net-worth-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+}
+
 /* ---- recurring stream rows ---- */
 .recurring-row {
   display: flex;
