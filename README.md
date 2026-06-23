@@ -71,6 +71,18 @@ The heuristic engine needs no key and no network, so categorization **always
 works** — AI just improves accuracy when budget/credentials exist
 (`VITE_INFERENCE_PROVIDER=anthropic`). See `src/orchestrator/index.ts`.
 
+### Driven by the ConjureOS orchestrator
+
+The app declares a `categorizeTransactions` action in its manifest
+(`package.json` → `conjureos.actions`) and registers a handler on load
+(`src/store/FinanceContext.tsx` → `registerHostActions`). This lets the OS
+orchestrator run categorization on command — e.g. typing *"do February's budget
+and categorize everything"* in the ConjureOS home chat opens Finance and
+categorizes that month with no manual button press. The optional `month` param
+is free-text (`"February"`, `"Feb 2026"`, `"2026-02"`); omit it to cover every
+month. Month parsing lives in `src/orchestrator/month.ts`. Standalone (plain
+`npm run dev`) the registration is a no-op, so the app is unaffected.
+
 ## Features
 
 - **Dashboard** — spending-by-category pie, monthly spend-vs-income bars,

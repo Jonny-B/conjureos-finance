@@ -11,6 +11,7 @@ import {
 import { buildFinanceApi, type FinanceApi } from "../api";
 import type { Account, Category } from "../api/types";
 import { buildOrchestrator, type CategorizationOrchestrator } from "../orchestrator";
+import { registerHostActions } from "../platform/host";
 
 interface FinanceContextValue {
   api: FinanceApi;
@@ -66,6 +67,34 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
       cancelled = true;
     };
   }, [api, revision]);
+
+  // Expose the categorizer to the ConjureOS orchestrator so the OS can drive it
+  // ("do February's budget and categorize everything"). No-op standalone. Runs
+  // once — api/orchestrator/refresh are stable for the provider's lifetime.
+  useEffect(() => {
+    void registerHostActions({
+      categorizeTransactions: async (params) => {
+        const month =
+          params && typeof params === "object" && typeof (params as { month?: unknown }).month === "string"
+            ? (params as { month: string }).month
+            : undefined;
+        await api.ready();
+        const cats = await api.listCategories();
+        const all = await api.queryTransactions({ limit: 10_000 });
+        const result = await orchestrator.run(cats, all.items, month ? { month } : {});
+        refresh();
+        const where = result.scopeLabel ? `for ${result.scopeLabel}` : "across all transactions";
+        return {
+          ...result,
+          message:
+            result.processed === 0
+              ? `No transactions to categorize ${where}.`
+              : `Categorized ${result.processed} transactions ${where} using ${result.engine} — ` +
+                `${result.autoApplied} auto-applied, ${result.needsReview} flagged for review.`,
+        };
+      },
+    });
+  }, [api, orchestrator, refresh]);
 
   const value: FinanceContextValue = {
     api,
