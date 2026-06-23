@@ -44,10 +44,15 @@ export function Layout() {
       if (cancelled) return;
       setCounts({ review: queue.length, alerts: alerts.length });
       // Foreground-deliver the urgent ones to ConjureOS notifications, once each.
-      for (const a of alerts) {
-        if (a.severity !== "danger" || notifiedAlertIds.has(a.id)) continue;
-        notifiedAlertIds.add(a.id);
-        hostNotify(a.title, a.message);
+      // Guard on categories being loaded so alert copy has real names (not the
+      // "Category" fallback) — and so we don't poison the dedup set on the
+      // first render when context categories are still empty.
+      if (categories.length > 0) {
+        for (const a of alerts) {
+          if (a.severity !== "danger" || notifiedAlertIds.has(a.id)) continue;
+          notifiedAlertIds.add(a.id);
+          hostNotify(a.title, a.message);
+        }
       }
     })().catch(() => {});
     return () => {
