@@ -1,5 +1,17 @@
 import type { CategorizationStatus, Category } from "../api/types";
 import { useFinance } from "../store/FinanceContext";
+import { enrichMerchant } from "../enrich/merchant";
+
+/** A small round merchant "logo": an enrichment glyph in a tinted circle.
+ *  No network in mock mode — a real logo provider would slot in via enrich. */
+export function MerchantLogo({ merchant, raw, size = 30 }: { merchant: string; raw?: string; size?: number }) {
+  const { emoji } = enrichMerchant(merchant, raw);
+  return (
+    <span className="merchant-logo" style={{ width: size, height: size, fontSize: Math.round(size * 0.5) }}>
+      {emoji}
+    </span>
+  );
+}
 
 export function CategoryChip({ category }: { category: Category | undefined }) {
   if (!category) return <span className="cui-chip cui-dim">Uncategorized</span>;

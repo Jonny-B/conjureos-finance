@@ -9,7 +9,7 @@ import {
   type RecurringStream,
 } from "../analytics/recurring";
 import { formatCurrency, formatDate } from "../lib/format";
-import { CategoryChip, Spinner } from "./common";
+import { CategoryChip, MerchantLogo, Spinner } from "./common";
 
 export function Recurring() {
   const { api, revision } = useFinance();
@@ -102,7 +102,9 @@ function StreamSection({
       <div className="grid" style={{ gap: 2 }}>
         {streams.map((s) => (
           <div key={s.key} className={`recurring-row${s.status === "inactive" ? " inactive" : ""}`}>
-            <div style={{ minWidth: 0 }}>
+            <div className="row" style={{ gap: 10, minWidth: 0 }}>
+              <MerchantLogo merchant={s.merchantName} />
+              <div style={{ minWidth: 0 }}>
               <div className="row" style={{ gap: 8 }}>
                 <strong>{s.merchantName}</strong>
                 {s.priceIncrease && (
@@ -114,6 +116,7 @@ function StreamSection({
               </div>
               <div className="faint" style={{ fontSize: 12, marginTop: 2 }}>
                 {cadenceLabel(s.cadence)} · {s.status === "active" ? `next ${formatDate(s.nextDate)}` : `last ${formatDate(s.lastDate)}`}
+              </div>
               </div>
             </div>
             <div className="row" style={{ gap: 12 }}>

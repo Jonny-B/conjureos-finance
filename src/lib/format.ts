@@ -26,6 +26,13 @@ export function formatDate(iso: ISODate): string {
   });
 }
 
+/** Friendly date+time from an ISO timestamp, e.g. "Jun 23, 2:14 PM". */
+export function formatDateTime(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+}
+
 export function monthLabel(month: string): string {
   const [y, m] = month.split("-").map(Number);
   return new Date(y, m - 1, 1).toLocaleDateString("en-US", { month: "short", year: "2-digit" });

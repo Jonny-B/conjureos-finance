@@ -339,6 +339,17 @@ button {
   border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
 }
 
+/* Merchant "logo": enrichment glyph in a tinted circle. */
+.merchant-logo {
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border);
+  line-height: 1;
+}
+
 /* ---- recurring stream rows ---- */
 .recurring-row {
   display: flex;

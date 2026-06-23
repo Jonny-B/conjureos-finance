@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useFinance, useCategoryMap } from "../store/FinanceContext";
 import type { CategorizationStatus, Page, Transaction, TransactionQuery } from "../api/types";
 import { formatCurrency, formatDate } from "../lib/format";
-import { CategoryChip, CategorySelect, StatusBadge } from "./common";
+import { CategoryChip, CategorySelect, MerchantLogo, StatusBadge } from "./common";
 
 const STATUSES: CategorizationStatus[] = ["auto", "confirmed", "needs_review", "uncategorized"];
 
@@ -119,8 +119,13 @@ export function Transactions() {
               <tr key={t.id}>
                 <td className="faint" style={{ whiteSpace: "nowrap" }}>{formatDate(t.date)}</td>
                 <td>
-                  <div>{t.merchantName}</div>
-                  <div className="faint" style={{ fontSize: 12 }}>{t.rawDescription}</div>
+                  <div className="row" style={{ gap: 10 }}>
+                    <MerchantLogo merchant={t.merchantName} raw={t.rawDescription} />
+                    <div style={{ minWidth: 0 }}>
+                      <div>{t.merchantName}</div>
+                      <div className="faint" style={{ fontSize: 12 }}>{t.rawDescription}</div>
+                    </div>
+                  </div>
                 </td>
                 <td>
                   {editing === t.id ? (

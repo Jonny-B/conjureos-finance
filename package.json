@@ -10,7 +10,8 @@
     "permissions": [
       "ai.complete",
       "vfs.read",
-      "vfs.write"
+      "vfs.write",
+      "notify"
     ],
     "actions": {
       "categorizeTransactions": {

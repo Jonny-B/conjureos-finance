@@ -3,8 +3,14 @@ import { NavLink, Outlet } from "react-router-dom";
 import { useFinance } from "../store/FinanceContext";
 import { detectRecurring } from "../analytics/recurring";
 import { computeAlerts } from "../analytics/alerts";
+import { hostNotify } from "../platform/host";
 import { UserBadge } from "./UserBadge";
 import { RunToast } from "./RunToast";
+
+// Alerts already pushed to ConjureOS notifications this session — so a re-render
+// or refresh doesn't re-fire the same nudge. (Background/push delivery when the
+// app is closed is a backend seam: Plaid webhook → edge function → notify.)
+const notifiedAlertIds = new Set<string>();
 
 type BadgeKey = "review" | "alerts";
 
@@ -35,7 +41,14 @@ export function Layout() {
       ]);
       const streams = detectRecurring(txnPage.items);
       const alerts = computeAlerts({ accounts, budgets, categories, transactions: txnPage.items, streams });
-      if (!cancelled) setCounts({ review: queue.length, alerts: alerts.length });
+      if (cancelled) return;
+      setCounts({ review: queue.length, alerts: alerts.length });
+      // Foreground-deliver the urgent ones to ConjureOS notifications, once each.
+      for (const a of alerts) {
+        if (a.severity !== "danger" || notifiedAlertIds.has(a.id)) continue;
+        notifiedAlertIds.add(a.id);
+        hostNotify(a.title, a.message);
+      }
     })().catch(() => {});
     return () => {
       cancelled = true;

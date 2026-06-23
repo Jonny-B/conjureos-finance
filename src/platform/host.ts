@@ -32,6 +32,7 @@ interface ConjureOSGlobal {
     getAccessToken: () => Promise<string | null>;
   };
   actions?: ConjureOSActionsBridge;
+  notify?: (input: { title: string; body?: string }) => void | Promise<void>;
 }
 
 function bridge(): ConjureOSGlobal | null {
@@ -70,6 +71,23 @@ export async function getHostAccessToken(): Promise<string | null> {
     return await b.auth.getAccessToken();
   } catch {
     return null;
+  }
+}
+
+/**
+ * Fire a ConjureOS notification (e.g. a low-balance or over-budget alert).
+ * No-op when standalone or when the host hasn't granted `notify`. This is the
+ * FOREGROUND delivery path; true background/push (firing while the app is
+ * closed) needs Plaid webhooks → an edge function → notify, which is the
+ * mocked-out backend seam.
+ */
+export function hostNotify(title: string, body?: string): void {
+  const b = bridge();
+  if (!b?.notify) return;
+  try {
+    void b.notify({ title, ...(body && { body }) });
+  } catch {
+    /* notifications are best-effort */
   }
 }
 
