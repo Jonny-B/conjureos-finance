@@ -10,8 +10,21 @@ import {
 } from "react";
 import { buildFinanceApi, type FinanceApi } from "../api";
 import type { Account, Category } from "../api/types";
-import { buildOrchestrator, type CategorizationOrchestrator } from "../orchestrator";
+import {
+  buildOrchestrator,
+  summarizeRun,
+  type CategorizationOrchestrator,
+  type CategorizationRunResult,
+} from "../orchestrator";
 import { registerHostActions } from "../platform/host";
+
+/** A categorization run worth announcing in the UI, tagged so repeat runs re-show. */
+export interface RunAnnouncement {
+  id: number;
+  result: CategorizationRunResult;
+  /** "orchestrator" = driven by the OS from outside; "manual" = the in-app button. */
+  source: "orchestrator" | "manual";
+}
 
 interface FinanceContextValue {
   api: FinanceApi;
@@ -23,6 +36,10 @@ interface FinanceContextValue {
   refresh: () => void;
   loadingMeta: boolean;
   error: string | null;
+  /** Most recent categorization run, surfaced as a toast. Null once dismissed. */
+  runAnnouncement: RunAnnouncement | null;
+  announceRun: (result: CategorizationRunResult, source: RunAnnouncement["source"]) => void;
+  dismissRun: () => void;
 }
 
 const Ctx = createContext<FinanceContextValue | null>(null);
@@ -35,9 +52,16 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
   const [revision, setRevision] = useState(0);
   const [loadingMeta, setLoadingMeta] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [runAnnouncement, setRunAnnouncement] = useState<RunAnnouncement | null>(null);
   const mounted = useRef(true);
 
   const refresh = useCallback(() => setRevision((r) => r + 1), []);
+  const announceRun = useCallback(
+    (result: CategorizationRunResult, source: RunAnnouncement["source"]) =>
+      setRunAnnouncement({ id: Date.now(), result, source }),
+    [],
+  );
+  const dismissRun = useCallback(() => setRunAnnouncement(null), []);
 
   useEffect(() => {
     mounted.current = true;
@@ -83,18 +107,11 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
         const all = await api.queryTransactions({ limit: 10_000 });
         const result = await orchestrator.run(cats, all.items, month ? { month } : {});
         refresh();
-        const where = result.scopeLabel ? `for ${result.scopeLabel}` : "across all transactions";
-        return {
-          ...result,
-          message:
-            result.processed === 0
-              ? `No transactions to categorize ${where}.`
-              : `Categorized ${result.processed} transactions ${where} using ${result.engine} — ` +
-                `${result.autoApplied} auto-applied, ${result.needsReview} flagged for review.`,
-        };
+        announceRun(result, "orchestrator");
+        return { ...result, message: summarizeRun(result) };
       },
     });
-  }, [api, orchestrator, refresh]);
+  }, [api, orchestrator, refresh, announceRun]);
 
   const value: FinanceContextValue = {
     api,
@@ -105,6 +122,9 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
     refresh,
     loadingMeta,
     error,
+    runAnnouncement,
+    announceRun,
+    dismissRun,
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { useFinance } from "../store/FinanceContext";
 import { UserBadge } from "./UserBadge";
+import { RunToast } from "./RunToast";
 
 const NAV = [
   { to: "/", label: "Dashboard", icon: "📊", end: true },
@@ -55,6 +56,7 @@ export function Layout() {
       <main className="main">
         <Outlet />
       </main>
+      <RunToast />
     </div>
   );
 }

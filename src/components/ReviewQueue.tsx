@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useFinance, useCategoryMap } from "../store/FinanceContext";
 import type { Transaction } from "../api/types";
-import type { CategorizationRunResult } from "../orchestrator";
+import { summarizeRun, type CategorizationRunResult } from "../orchestrator";
 import { formatCurrency, formatDate } from "../lib/format";
 import { CategoryChip, CategorySelect, Spinner } from "./common";
 
@@ -49,21 +49,22 @@ export function ReviewQueue() {
       <div className="page-head">
         <div>
           <div className="page-title">Review</div>
-          <div className="page-sub">Transactions the orchestrator wasn’t sure about</div>
+          <div className="page-sub">Transactions we weren’t sure how to categorize</div>
         </div>
         <button className="cui-button cui-button--primary" onClick={runOrchestrator} disabled={running}>
-          {running ? "Categorizing…" : "Run orchestrator"}
+          {running ? "Categorizing…" : "Auto-categorize"}
         </button>
       </div>
 
+      <div className="hint">
+        💡 Tip: ask ConjureOS to <em>“do February’s budget and categorize everything”</em> to sort a
+        whole month at once, without opening this page.
+      </div>
+
       {lastRun && (
-        <div className="banner">
-          <span>🤖</span>
-          <div>
-            Ran <strong>{lastRun.engine}</strong> on {lastRun.processed} transactions —{" "}
-            <span className="pos">{lastRun.autoApplied} auto-categorized</span>,{" "}
-            <span style={{ color: "var(--warn)" }}>{lastRun.needsReview} flagged for review</span>.
-          </div>
+        <div className={`banner ${lastRun.needsReview > 0 ? "warn" : "success"}`}>
+          <span>{lastRun.needsReview > 0 ? "🤖" : "✅"}</span>
+          <div>{summarizeRun(lastRun)}</div>
         </div>
       )}
 
@@ -71,9 +72,9 @@ export function ReviewQueue() {
         <Spinner />
       ) : queue.length === 0 ? (
         <div className="cui-card empty">
-          🎉 Nothing to review. The orchestrator handled everything it was confident about.
+          🎉 All clear. Everything we were confident about is categorized.
           <div className="muted" style={{ marginTop: 8 }}>
-            Run it again after importing new transactions.
+            Run it again, or ask ConjureOS, once new transactions come in.
           </div>
         </div>
       ) : (

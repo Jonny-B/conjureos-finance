@@ -10,6 +10,7 @@ import { AnthropicProvider, type ResolvedCredential } from "./inference/anthropi
 import type { InferenceProvider } from "./inference/types";
 
 export * from "./categorizer";
+export { summarizeRun } from "./describe";
 export type { InferenceBudget } from "./inference/types";
 
 /**
