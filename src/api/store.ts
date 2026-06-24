@@ -10,8 +10,10 @@ import type {
   CategorySpend,
   DashboardSummary,
   DateRange,
+  ManualAsset,
   MonthlyPoint,
   Page,
+  SavingsGoal,
   Transaction,
   TransactionQuery,
 } from "./types";
@@ -21,6 +23,8 @@ export interface StoreState {
   categories: Category[];
   transactions: Transaction[];
   budgets: Budget[];
+  manualAssets?: ManualAsset[];
+  savingsGoals?: SavingsGoal[];
 }
 
 export class LocalStore {
@@ -28,12 +32,16 @@ export class LocalStore {
   private categories: Category[];
   private txns: Map<string, Transaction>;
   private budgets: Map<string, Budget>;
+  private manualAssets: Map<string, ManualAsset>;
+  private savingsGoals: Map<string, SavingsGoal>;
 
   constructor(state: StoreState) {
     this.accounts = state.accounts;
     this.categories = state.categories;
     this.txns = new Map(state.transactions.map((t) => [t.id, t]));
     this.budgets = new Map(state.budgets.map((b) => [b.id, b]));
+    this.manualAssets = new Map((state.manualAssets ?? []).map((a) => [a.id, a]));
+    this.savingsGoals = new Map((state.savingsGoals ?? []).map((g) => [g.id, g]));
   }
 
   // ---- accounts / categories -------------------------------------------
@@ -154,6 +162,28 @@ export class LocalStore {
     this.budgets.delete(id);
   }
 
+  // ---- manual assets ---------------------------------------------------
+  listManualAssets(): ManualAsset[] {
+    return [...this.manualAssets.values()];
+  }
+  upsertManualAsset(a: ManualAsset) {
+    this.manualAssets.set(a.id, a);
+  }
+  removeManualAsset(id: string) {
+    this.manualAssets.delete(id);
+  }
+
+  // ---- savings goals ---------------------------------------------------
+  listSavingsGoals(): SavingsGoal[] {
+    return [...this.savingsGoals.values()];
+  }
+  upsertSavingsGoal(g: SavingsGoal) {
+    this.savingsGoals.set(g.id, g);
+  }
+  removeSavingsGoal(id: string) {
+    this.savingsGoals.delete(id);
+  }
+
   // ---- analytics -------------------------------------------------------
   dashboard(range: DateRange): DashboardSummary {
     const inRange = [...this.txns.values()].filter((t) => t.date >= range.from && t.date <= range.to);
@@ -214,6 +244,8 @@ export class LocalStore {
       categories: this.listCategories(),
       transactions: this.allTransactions(),
       budgets: this.listBudgets(),
+      manualAssets: this.listManualAssets(),
+      savingsGoals: this.listSavingsGoals(),
     };
   }
 }

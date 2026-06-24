@@ -10,6 +10,10 @@ import { Layout } from "./components/Layout";
 import { Dashboard } from "./components/Dashboard";
 import { Transactions } from "./components/Transactions";
 import { ReviewQueue } from "./components/ReviewQueue";
+import { Recurring } from "./components/Recurring";
+import { Alerts } from "./components/Alerts";
+import { NetWorth } from "./components/NetWorth";
+import { Goals } from "./components/Goals";
 import { Budgets } from "./components/Budgets";
 import { Categories } from "./components/Categories";
 import { Settings } from "./components/Settings";
@@ -21,8 +25,12 @@ export function App() {
         <Routes>
           <Route element={<Layout />}>
             <Route index element={<Dashboard />} />
+            <Route path="net-worth" element={<NetWorth />} />
             <Route path="transactions" element={<Transactions />} />
+            <Route path="recurring" element={<Recurring />} />
             <Route path="review" element={<ReviewQueue />} />
+            <Route path="alerts" element={<Alerts />} />
+            <Route path="goals" element={<Goals />} />
             <Route path="budgets" element={<Budgets />} />
             <Route path="categories" element={<Categories />} />
             <Route path="settings" element={<Settings />} />

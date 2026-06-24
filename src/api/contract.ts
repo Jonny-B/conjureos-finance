@@ -15,7 +15,9 @@ import type {
   Category,
   DashboardSummary,
   DateRange,
+  ManualAsset,
   Page,
+  SavingsGoal,
   Transaction,
   TransactionQuery,
 } from "./types";
@@ -73,6 +75,16 @@ export interface FinanceApi {
   listBudgets(): Promise<Budget[]>;
   upsertBudget(input: Omit<Budget, "id"> & { id?: string }): Promise<Budget>;
   deleteBudget(id: string): Promise<void>;
+
+  // --- manual assets (net worth beyond linked accounts) ------------------
+  listManualAssets(): Promise<ManualAsset[]>;
+  upsertManualAsset(input: Omit<ManualAsset, "id"> & { id?: string }): Promise<ManualAsset>;
+  deleteManualAsset(id: string): Promise<void>;
+
+  // --- savings goals -----------------------------------------------------
+  listSavingsGoals(): Promise<SavingsGoal[]>;
+  upsertSavingsGoal(input: Omit<SavingsGoal, "id" | "createdAt"> & { id?: string }): Promise<SavingsGoal>;
+  deleteSavingsGoal(id: string): Promise<void>;
 
   // --- analytics (computed client-side from decrypted data) --------------
   getDashboard(range: DateRange): Promise<DashboardSummary>;

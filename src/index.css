@@ -316,6 +316,147 @@ button {
   border-color: #5a4a12;
   background: #241f0c;
 }
+.banner.success {
+  border-color: color-mix(in srgb, var(--good) 45%, transparent);
+  background: color-mix(in srgb, var(--good) 12%, transparent);
+}
+.banner.danger {
+  border-color: color-mix(in srgb, var(--bad) 50%, transparent);
+  background: color-mix(in srgb, var(--bad) 12%, transparent);
+}
+.banner.info {
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  background: var(--accent-soft);
+}
+
+/* Net-worth summary card on the dashboard is a link to the detail page. */
+.net-worth-card {
+  display: block;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+.net-worth-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+}
+
+/* Merchant "logo": enrichment glyph in a tinted circle. */
+.merchant-logo {
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border);
+  line-height: 1;
+}
+
+/* ---- recurring stream rows ---- */
+.recurring-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.recurring-row:last-child {
+  border-bottom: none;
+}
+.recurring-row.inactive {
+  opacity: 0.55;
+}
+
+/* Inline educational hint (e.g. "ask ConjureOS to …"). Lower-key than a banner. */
+.hint {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  color: var(--text-dim);
+  font-size: 13px;
+}
+.hint em {
+  color: var(--text);
+  font-style: italic;
+}
+
+/* ---- toast (app-level run confirmation) ---- */
+.toast {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 50;
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  max-width: 360px;
+  padding: 13px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-elev-2);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  animation: toast-in 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.toast-mark {
+  font-size: 18px;
+  line-height: 1.3;
+  flex: none;
+}
+.toast-body {
+  min-width: 0;
+  flex: 1;
+}
+.toast-title {
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: -0.01em;
+  margin-bottom: 2px;
+}
+.toast-text {
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.45;
+}
+.toast-close {
+  flex: none;
+  background: transparent;
+  border: none;
+  color: var(--text-faint);
+  font-size: 13px;
+  padding: 2px 4px;
+  border-radius: 6px;
+  line-height: 1;
+}
+.toast-close:hover {
+  background: var(--bg-elev);
+  color: var(--text);
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@media (max-width: 860px) {
+  .toast {
+    right: 12px;
+    left: 12px;
+    bottom: 12px;
+    max-width: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    animation: none;
+  }
+}
 
 .empty {
   text-align: center;
