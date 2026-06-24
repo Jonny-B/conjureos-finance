@@ -574,51 +574,395 @@ button {
   font-size: 12px;
 }
 
+/* ---- sidebar grouping (desktop) ---- */
+.nav-group-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-faint);
+  font-weight: 700;
+  padding: 16px 12px 4px;
+}
+
+/* ---- mobile gradient app header ---- */
+/* Modeled on Rocket Money's gradient header, recolored to the ConjureOS accent
+   (purple) so it fits the OS theme instead of copying their crimson. Mobile-only;
+   desktop uses the sidebar brand + per-page .page-head. */
+.app-header {
+  display: none;
+}
+.app-header-ico {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  font-size: 17px;
+  flex: none;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  border: none;
+}
+
+/* ---- mobile bottom tab bar ---- */
+.tabbar {
+  display: none;
+}
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 7px 2px 5px;
+  color: var(--text-faint);
+  font-size: 10px;
+  font-weight: 600;
+  position: relative;
+  background: transparent;
+  border: none;
+}
+.tab.active {
+  color: var(--accent);
+}
+.tab-ico {
+  font-size: 19px;
+  line-height: 1;
+}
+.tab-badge {
+  position: absolute;
+  top: 3px;
+  left: calc(50% + 6px);
+  background: var(--warn);
+  color: #1a1a1a;
+  font-size: 9px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0 5px;
+  line-height: 1.5;
+}
+
+/* ---- dashboard hero carousel ---- */
+/* Desktop: cards sit side by side. Mobile (media query): horizontal snap scroller. */
+.hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.hero-card {
+  min-width: 0;
+}
+.hero-dots {
+  display: none;
+  justify-content: center;
+  gap: 6px;
+  margin-top: -4px;
+}
+.hero-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: background 0.15s ease, width 0.15s ease;
+}
+.hero-dot.on {
+  background: var(--accent);
+  width: 18px;
+}
+
+/* Big hero stat treatment */
+.hero-stat {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.hero-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+/* ---- accounts list ---- */
+.acct-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 2px;
+  border-bottom: 1px solid var(--border);
+}
+.acct-row:last-child {
+  border-bottom: none;
+}
+.acct-name {
+  font-weight: 600;
+  min-width: 0;
+}
+.acct-sub {
+  font-size: 12px;
+  color: var(--text-faint);
+}
+.acct-bal {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ---- segmented control (period switcher) ---- */
+.segmented {
+  display: inline-flex;
+  gap: 3px;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px;
+}
+.segmented button {
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  font-weight: 600;
+  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: 999px;
+}
+.segmented button.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ---- spending donut center label ---- */
+.donut-wrap {
+  position: relative;
+}
+.donut-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  text-align: center;
+}
+.donut-center .dc-label {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.donut-center .dc-value {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* ---- budget summary cards ---- */
+.budget-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.budget-summary .span-2 {
+  grid-column: 1 / -1;
+}
+.budget-pill {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--good) 16%, transparent);
+  color: var(--good);
+  white-space: nowrap;
+}
+.cat-budget-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 2px;
+  border-bottom: 1px solid var(--border);
+}
+.cat-budget-row:last-child {
+  border-bottom: none;
+}
+
+/* ---- category icon chip (colored circle) ---- */
+.cat-ico {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+  flex: none;
+}
+
+/* ---- "more" tile grid ---- */
+.more-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.more-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px;
+  min-height: 104px;
+  position: relative;
+  transition: border-color 0.15s ease;
+}
+.more-tile:hover {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+}
+.more-tile .mt-ico {
+  font-size: 24px;
+}
+.more-tile .mt-label {
+  font-weight: 600;
+}
+.more-tile .mt-sub {
+  font-size: 12px;
+  color: var(--text-faint);
+}
+.more-tile .nav-badge {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  margin: 0;
+}
+
+/* ---- list card (recurring "coming up", section lists) ---- */
+.list-card {
+  padding: 0;
+}
+.list-card > * {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+/* ---- transactions grouped list ---- */
+.txn-group-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 2px 6px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
+}
+.txn-group-head .tgh-total {
+  color: var(--text-faint);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.txn-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 2px;
+  border-bottom: 1px solid var(--border);
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  color: inherit;
+}
+.txn-row:last-child {
+  border-bottom: none;
+}
+.txn-row:hover {
+  background: var(--bg-elev-2);
+}
+.txn-name {
+  font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.txn-date {
+  font-size: 12px;
+  color: var(--text-faint);
+}
+.txn-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+.txn-amount {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.txn-edit {
+  padding: 10px 2px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
 @media (max-width: 860px) {
+  /* Single column; the sidebar is replaced by a gradient header (top) + a fixed
+     bottom tab bar, modeled on Rocket Money's mobile chrome. */
   .app {
     grid-template-columns: minmax(0, 1fr);
   }
-  /* Sidebar becomes a sticky top app-bar: brand on its own row, then a
-     horizontal-scroll nav strip. (Brand no longer shares the scroller with the
-     nav, so navigating can't drag the title off-screen.) */
   .sidebar {
+    display: none;
+  }
+  .app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
     position: sticky;
     top: 0;
     z-index: 20;
-    height: auto;
-    flex-direction: column;
-    gap: 0;
-    padding: 0;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
+    background: linear-gradient(135deg, var(--accent), #8b5cf6);
+    color: #fff;
+  }
+  .app-header .ah-title {
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .app-header .ah-sub {
+    font-size: 12px;
+    opacity: 0.85;
+    margin-top: 1px;
+  }
+  .tabbar {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 30;
     background: var(--bg-elev);
+    border-top: 1px solid var(--border);
+    padding: 6px 4px;
+    padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
   }
-  .brand {
-    padding: 12px 16px 8px;
-  }
-  .nav-links {
-    flex-direction: row;
-    overflow-x: auto;
-    gap: 6px;
-    padding: 0 12px 10px;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-  .nav-links::-webkit-scrollbar {
+  /* The gradient header carries the page title on mobile, so the in-page
+     title/subtitle are redundant — hide them but keep any action row. */
+  .page-title,
+  .page-sub {
     display: none;
   }
-  .nav-link {
-    flex: none;
-    white-space: nowrap;
-    padding: 8px 12px;
+  .page-head {
+    margin-bottom: 12px;
   }
-  .nav-badge {
-    margin-left: 4px;
-  }
-  /* The e2e note + user badge move off the bar on mobile (account lives in
-     Settings); keeps the top bar compact. */
-  .nav-spacer,
-  .sidebar-aux {
+  .page-head:empty {
     display: none;
   }
   .grid-4 {
@@ -628,22 +972,46 @@ button {
     grid-template-columns: 1fr;
   }
   .main {
-    padding: 18px;
+    padding: 16px 16px 84px; /* bottom room for the fixed tab bar */
+  }
+  /* Hero carousel: side-by-side on desktop → horizontal snap scroller on mobile. */
+  .hero {
+    grid-auto-flow: column;
+    grid-template-columns: none;
+    grid-auto-columns: 86%;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 12px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin: 0 -16px;
+    padding: 0 16px;
+  }
+  .hero::-webkit-scrollbar {
+    display: none;
+  }
+  .hero-card {
+    scroll-snap-align: center;
+  }
+  .hero-dots {
+    display: flex;
+  }
+  .budget-summary {
+    grid-template-columns: 1fr;
+  }
+  .more-grid {
+    grid-template-columns: 1fr 1fr;
   }
   /* Transactions: drop the secondary columns (status, category) + the raw
-     descriptor so Date + Merchant + Amount fit without sideways scrolling.
-     The .table-scroll wrapper catches any remaining overflow. */
+     descriptor so Date + Merchant + Amount fit without sideways scrolling. */
   .col-status,
   .col-cat,
   .txn-raw {
     display: none;
   }
-  /* Recurring rows: the category chip is redundant (the section header already
-     names the type) and pushes the row past the edge on narrow screens. */
   .recurring-row .cui-chip {
     display: none;
   }
-  /* Filters stack full-width instead of crowding off the right edge. */
   .toolbar {
     flex-direction: column;
     align-items: stretch;
