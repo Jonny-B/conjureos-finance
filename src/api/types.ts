@@ -26,6 +26,38 @@ export interface Account {
   /** Balance is sensitive: client-side only, encrypted at rest on the server. */
   balanceCents: Cents;
   currency: string; // ISO 4217, e.g. "USD"
+  /** Loan/credit detail. Maps 1:1 onto Plaid's Liabilities product when live;
+   *  seeded for credit/loan accounts in mock mode. */
+  liability?: LiabilityDetail;
+}
+
+/** Credit-card / loan servicing detail (Plaid Liabilities shape, trimmed). */
+export interface LiabilityDetail {
+  aprPct?: number;
+  nextPaymentDate?: ISODate;
+  minPaymentCents?: Cents;
+  statementBalanceCents?: Cents;
+}
+
+/** A user-entered asset or debt that isn't a linked account (home, car,
+ *  mortgage, 401k). Folds into net worth alongside linked accounts. */
+export type ManualAssetKind = "property" | "vehicle" | "cash" | "investment" | "other" | "debt";
+export interface ManualAsset {
+  id: string;
+  name: string;
+  kind: ManualAssetKind;
+  /** Positive cents. For kind "debt" this is the amount owed (subtracts from net worth). */
+  valueCents: Cents;
+}
+
+/** A savings goal. The "autosave" contribution is simulated (no real money
+ *  movement) until a banking partner is connected — see src/sync. */
+export interface SavingsGoal {
+  id: string;
+  name: string;
+  targetCents: Cents;
+  savedCents: Cents;
+  createdAt: ISODateTime;
 }
 
 export interface Category {

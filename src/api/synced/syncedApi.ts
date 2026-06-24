@@ -12,12 +12,21 @@ import type {
   Category,
   DashboardSummary,
   DateRange,
+  ManualAsset,
   Page,
+  SavingsGoal,
   Transaction,
   TransactionQuery,
 } from "../types";
 import { LocalStore } from "../store";
-import { ACCOUNTS, SEED_BUDGETS, SYSTEM_CATEGORIES, buildSeedTransactions } from "../mock/data";
+import {
+  ACCOUNTS,
+  SEED_BUDGETS,
+  SEED_GOALS,
+  SEED_MANUAL_ASSETS,
+  SYSTEM_CATEGORIES,
+  buildSeedTransactions,
+} from "../mock/data";
 import type { PushItem, RecordKind, SyncTransport } from "../sync/transport";
 import { decryptJSON, encryptJSON } from "../../crypto/crypto";
 import type { Vault } from "../../crypto/vault";
@@ -57,6 +66,8 @@ export class SyncedFinanceApi implements FinanceApi {
     const categories: Category[] = [];
     const transactions: Transaction[] = [];
     const budgets: Budget[] = [];
+    const manualAssets: ManualAsset[] = [];
+    const savingsGoals: SavingsGoal[] = [];
 
     for (const rec of pulled.records) {
       this.versions.set(this.vkey(rec.kind, rec.id), rec.version);
@@ -75,6 +86,12 @@ export class SyncedFinanceApi implements FinanceApi {
         case "budget":
           budgets.push(value as Budget);
           break;
+        case "manual_asset":
+          manualAssets.push(value as ManualAsset);
+          break;
+        case "savings_goal":
+          savingsGoals.push(value as SavingsGoal);
+          break;
       }
     }
 
@@ -86,13 +103,15 @@ export class SyncedFinanceApi implements FinanceApi {
         categories: [...SYSTEM_CATEGORIES],
         transactions: buildSeedTransactions(),
         budgets: [...SEED_BUDGETS],
+        manualAssets: [...SEED_MANUAL_ASSETS],
+        savingsGoals: [...SEED_GOALS],
       });
       await this.persistAll();
     } else {
       // Always ensure system categories exist even if a custom set was synced.
       const haveSystem = new Set(categories.map((c) => c.id));
       for (const sys of SYSTEM_CATEGORIES) if (!haveSystem.has(sys.id)) categories.push(sys);
-      this.store = new LocalStore({ accounts, categories, transactions, budgets });
+      this.store = new LocalStore({ accounts, categories, transactions, budgets, manualAssets, savingsGoals });
     }
   }
 
@@ -127,6 +146,8 @@ export class SyncedFinanceApi implements FinanceApi {
     for (const c of s.listCategories()) items.push({ kind: "category", id: c.id, value: c });
     for (const t of s.allTransactions()) items.push({ kind: "transaction", id: t.id, value: t });
     for (const b of s.listBudgets()) items.push({ kind: "budget", id: b.id, value: b });
+    for (const a of s.listManualAssets()) items.push({ kind: "manual_asset", id: a.id, value: a });
+    for (const g of s.listSavingsGoals()) items.push({ kind: "savings_goal", id: g.id, value: g });
     // Persist sequentially to keep memory + payloads modest; fine for seed size.
     for (const it of items) await this.persist(it.kind, it.id, it.value);
   }
@@ -242,6 +263,54 @@ export class SyncedFinanceApi implements FinanceApi {
     await this.ready();
     this.requireStore().removeBudget(id);
     await this.tombstone("budget", id);
+  }
+
+  // ---- manual assets ---------------------------------------------------
+  async listManualAssets(): Promise<ManualAsset[]> {
+    await this.ready();
+    return this.requireStore().listManualAssets();
+  }
+
+  async upsertManualAsset(input: Omit<ManualAsset, "id"> & { id?: string }): Promise<ManualAsset> {
+    await this.ready();
+    const asset: ManualAsset = { ...input, id: input.id ?? genId("asset") };
+    this.requireStore().upsertManualAsset(asset);
+    await this.persist("manual_asset", asset.id, asset);
+    return asset;
+  }
+
+  async deleteManualAsset(id: string): Promise<void> {
+    await this.ready();
+    this.requireStore().removeManualAsset(id);
+    await this.tombstone("manual_asset", id);
+  }
+
+  // ---- savings goals ---------------------------------------------------
+  async listSavingsGoals(): Promise<SavingsGoal[]> {
+    await this.ready();
+    return this.requireStore().listSavingsGoals();
+  }
+
+  async upsertSavingsGoal(
+    input: Omit<SavingsGoal, "id" | "createdAt"> & { id?: string },
+  ): Promise<SavingsGoal> {
+    await this.ready();
+    const s = this.requireStore();
+    const existing = input.id ? s.listSavingsGoals().find((g) => g.id === input.id) : undefined;
+    const goal: SavingsGoal = {
+      ...input,
+      id: input.id ?? genId("goal"),
+      createdAt: existing?.createdAt ?? new Date().toISOString(),
+    };
+    s.upsertSavingsGoal(goal);
+    await this.persist("savings_goal", goal.id, goal);
+    return goal;
+  }
+
+  async deleteSavingsGoal(id: string): Promise<void> {
+    await this.ready();
+    this.requireStore().removeSavingsGoal(id);
+    await this.tombstone("savings_goal", id);
   }
 
   // ---- analytics -------------------------------------------------------

@@ -11,7 +11,14 @@
 // store user transactions" and "encrypted so I can't see any data server-side":
 // the only clear-text the server ever holds is opaque ids and timestamps.
 
-export type RecordKind = "transaction" | "category" | "budget" | "account" | "meta";
+export type RecordKind =
+  | "transaction"
+  | "category"
+  | "budget"
+  | "account"
+  | "manual_asset"
+  | "savings_goal"
+  | "meta";
 
 export interface EncryptedRecord {
   kind: RecordKind;

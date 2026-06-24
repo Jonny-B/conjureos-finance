@@ -71,14 +71,78 @@ The heuristic engine needs no key and no network, so categorization **always
 works** — AI just improves accuracy when budget/credentials exist
 (`VITE_INFERENCE_PROVIDER=anthropic`). See `src/orchestrator/index.ts`.
 
+### Driven by the ConjureOS orchestrator
+
+The app declares a `categorizeTransactions` action in its manifest
+(`package.json` → `conjureos.actions`) and registers a handler on load
+(`src/store/FinanceContext.tsx` → `registerHostActions`). This lets the OS
+orchestrator run categorization on command — e.g. typing *"do February's budget
+and categorize everything"* in the ConjureOS home chat opens Finance and
+categorizes that month with no manual button press. The optional `month` param
+is free-text (`"February"`, `"Feb 2026"`, `"2026-02"`); omit it to cover every
+month. Month parsing lives in `src/orchestrator/month.ts`. Standalone (plain
+`npm run dev`) the registration is a no-op, so the app is unaffected.
+
+Three actions are exposed (manifest `conjureos.actions` + `registerHostActions`):
+
+- **`categorizeTransactions`** (`{ month? }`) — categorize, optionally one month.
+- **`findRecurring`** — summarize subscriptions + recurring bills ("what
+  subscriptions am I paying for?").
+- **`buildBudgetFromHistory`** — set monthly budgets from spending history
+  ("set up my budget").
+
+## Analytics (`src/analytics/`)
+
+Pure, dependency-free functions over the transaction set — no Plaid, no storage,
+so they work identically on the mock and the encrypted-sync API and are unit
+tested in `src/analytics/__tests__`:
+
+- **`recurring.ts`** — recurring/subscription detection. Monthly is
+  calendar-aware (a merchant seen ~once per month across several months), while
+  weekly/biweekly require regular spacing, so habitual spend (groceries, coffee)
+  is excluded. Powers the Recurring view + upcoming-bill/price-hike alerts.
+- **`networth.ts`** — assets − liabilities across linked accounts.
+- **`budgetSuggest.ts`** — per-category caps from the average of recent
+  completed months + a buffer (Rocket Money's budget-wizard mechanic).
+- **`alerts.ts`** — derived low-balance / over-budget / upcoming-bill /
+  price-hike nudges.
+
+## Plaid-ready seams (`src/sync/`, `src/enrich/`)
+
+Features that ultimately want Plaid prod are built behind interfaces with a mock
+implementation today, so the real version drops in via a config flag — no
+rewrite:
+
+- **`sync/bankProvider.ts`** — `BankProvider` (list/connect/sync/unlink). Mock
+  simulates one linked institution; `VITE_BANK_PROVIDER=plaid` swaps in the real
+  one (which will call the ConjureOS `plaid-*` edge functions). Drives the
+  Settings → Bank connections card.
+- **`enrich/merchant.ts`** — `MerchantEnricher` for clean names + logos. Mock is
+  a local glyph table (no network); Plaid Enrich slots in behind it.
+- **Net-worth** already supports manual assets, and **`Account.liability`**
+  mirrors Plaid Liabilities — both populate from seed now, from Plaid later.
+- **Alerts** deliver to ConjureOS notifications in the foreground; background
+  push (app closed) is the remaining backend seam: Plaid webhook → edge function
+  → `notify`.
+
 ## Features
 
-- **Dashboard** — spending-by-category pie, monthly spend-vs-income bars,
-  category breakdown, top merchants, selectable time range.
-- **Transactions** — full-text search, filter by category/account/status, sort.
-- **Review** — the orchestrator's uncertainty queue; run it, confirm/override.
-- **Budgets** — monthly caps with live progress against current-month spend.
+- **Dashboard** — net-worth summary card, spending-by-category pie, monthly
+  spend-vs-income bars, category breakdown, top merchants, selectable range.
+- **Net worth** — assets − liabilities across linked accounts + manual assets
+  (home, car, mortgage); debt detail (APR, due date, min payment).
+- **Transactions** — merchant logos, full-text search, filter, sort.
+- **Recurring** — detected subscriptions, bills and income with cadence, next
+  charge date, and monthly totals.
+- **Review** — the categorizer's uncertainty queue; run it, confirm/override.
+- **Alerts** — low balance, over/near budget, upcoming bills, price increases
+  (also pushed to ConjureOS notifications).
+- **Budgets** — monthly caps with live progress, plus one-tap "Build from
+  history" to size every category from past spending.
+- **Goals** — savings goals with progress (contributions simulated until a bank
+  partner is connected).
 - **Categories** — system + custom categories.
+- **Settings** — account/SSO, privacy, inference engine, bank connections.
 - **Account** — as a ConjureOS default app it reuses the OS session via SSO
   (`window.__conjureos.auth`); a sidebar user badge shows who's signed in, and
   Settings shows the account + identity source. Degrades to "standalone" when

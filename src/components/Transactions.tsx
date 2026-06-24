@@ -1,10 +1,35 @@
 import { useEffect, useMemo, useState } from "react";
 import { useFinance, useCategoryMap } from "../store/FinanceContext";
 import type { CategorizationStatus, Page, Transaction, TransactionQuery } from "../api/types";
-import { formatCurrency, formatDate } from "../lib/format";
-import { CategoryChip, CategorySelect, StatusBadge } from "./common";
+import { monthKey } from "../analytics/dates";
+import { formatCurrency, formatDate, monthLabel } from "../lib/format";
+import { CategoryChip, CategorySelect, MerchantLogo, StatusBadge } from "./common";
 
 const STATUSES: CategorizationStatus[] = ["auto", "confirmed", "needs_review", "uncategorized"];
+
+interface Group {
+  key: string;
+  label: string;
+  spentCents: number;
+  items: Transaction[];
+}
+
+function groupByMonth(items: Transaction[]): Group[] {
+  const groups: Group[] = [];
+  const index = new Map<string, Group>();
+  for (const t of items) {
+    const key = monthKey(t.date);
+    let g = index.get(key);
+    if (!g) {
+      g = { key, label: monthLabel(key), spentCents: 0, items: [] };
+      index.set(key, g);
+      groups.push(g);
+    }
+    g.items.push(t);
+    if (t.amountCents < 0) g.spentCents += -t.amountCents;
+  }
+  return groups;
+}
 
 export function Transactions() {
   const { api, categories, accounts, refresh, revision } = useFinance();
@@ -32,7 +57,7 @@ export function Transactions() {
       accountIds: accountId ? [accountId] : undefined,
       status: status ? [status as CategorizationStatus] : undefined,
       sort,
-      limit: 100,
+      limit: 200,
     }),
     [debounced, categoryId, accountId, status, sort],
   );
@@ -55,6 +80,8 @@ export function Transactions() {
     refresh();
   }
 
+  const groups = useMemo(() => (page ? groupByMonth(page.items) : []), [page]);
+
   return (
     <>
       <div className="page-head">
@@ -67,7 +94,7 @@ export function Transactions() {
       <div className="toolbar">
         <input
           className="cui-input"
-          placeholder="Search merchant or description…"
+          placeholder="Search my transactions…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -103,60 +130,63 @@ export function Transactions() {
         </select>
       </div>
 
-      <div className="cui-card" style={{ padding: 0 }}>
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Merchant</th>
-              <th>Category</th>
-              <th>Status</th>
-              <th style={{ textAlign: "right" }}>Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            {page?.items.map((t) => (
-              <tr key={t.id}>
-                <td className="faint" style={{ whiteSpace: "nowrap" }}>{formatDate(t.date)}</td>
-                <td>
-                  <div>{t.merchantName}</div>
-                  <div className="faint" style={{ fontSize: 12 }}>{t.rawDescription}</div>
-                </td>
-                <td>
-                  {editing === t.id ? (
-                    <div style={{ maxWidth: 220 }}>
-                      <CategorySelect
-                        value={t.categorization.categoryId}
-                        onChange={(c) => recategorize(t.id, c)}
-                      />
+      {loading ? (
+        <div className="cui-card empty">Loading…</div>
+      ) : groups.length === 0 ? (
+        <div className="cui-card empty">No transactions match your filters.</div>
+      ) : (
+        <div className="grid" style={{ gap: 14 }}>
+          {groups.map((g) => (
+            <div key={g.key}>
+              <div className="txn-group-head">
+                <span>{g.label}</span>
+                <span className="tgh-total">{formatCurrency(g.spentCents)} spent</span>
+              </div>
+              <div className="cui-card" style={{ padding: "4px 14px" }}>
+                {g.items.map((t) => {
+                  const isEditing = editing === t.id;
+                  return (
+                    <div key={t.id}>
+                      <button className="txn-row" onClick={() => setEditing(isEditing ? null : t.id)}>
+                        <MerchantLogo merchant={t.merchantName} raw={t.rawDescription} />
+                        <div style={{ minWidth: 0 }}>
+                          <div className="txn-name">{t.merchantName}</div>
+                          <div className="txn-date">
+                            {formatDate(t.date)}
+                            {t.pending && " · pending"}
+                          </div>
+                        </div>
+                        <div className="txn-meta">
+                          <span className="col-cat">
+                            <CategoryChip category={catMap.get(t.categorization.categoryId ?? "")} />
+                          </span>
+                          <span className="col-status">
+                            <StatusBadge status={t.categorization.status} confidence={t.categorization.confidence} />
+                          </span>
+                          <span className={`txn-amount ${t.amountCents >= 0 ? "pos" : ""}`}>
+                            {formatCurrency(t.amountCents)}
+                          </span>
+                        </div>
+                      </button>
+                      {isEditing && (
+                        <div className="txn-edit">
+                          <div className="field">
+                            <label>Category for {t.merchantName}</label>
+                            <CategorySelect
+                              value={t.categorization.categoryId}
+                              onChange={(c) => recategorize(t.id, c)}
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    <button className="cui-button cui-button--ghost btn-sm" onClick={() => setEditing(t.id)} title="Recategorize">
-                      <CategoryChip category={catMap.get(t.categorization.categoryId ?? "")} />
-                    </button>
-                  )}
-                </td>
-                <td>
-                  <StatusBadge status={t.categorization.status} confidence={t.categorization.confidence} />
-                </td>
-                <td className={`amount ${t.amountCents >= 0 ? "pos" : ""}`}>
-                  {formatCurrency(t.amountCents)}
-                </td>
-              </tr>
-            ))}
-            {!loading && page?.items.length === 0 && (
-              <tr>
-                <td colSpan={5} className="empty">No transactions match your filters.</td>
-              </tr>
-            )}
-            {loading && (
-              <tr>
-                <td colSpan={5} className="empty">Loading…</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </>
   );
 }

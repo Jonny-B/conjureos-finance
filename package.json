@@ -1,7 +1,7 @@
 {
   "name": "conjureos-finance",
   "private": true,
-  "version": "0.1.3",
+  "version": "0.5.0",
   "type": "module",
   "description": "Privacy-first personal finance app (Mint/Rocket Money clone) for ConjureOS. End-to-end encrypted; the server never sees your transactions.",
   "conjureos": {
@@ -10,11 +10,27 @@
     "permissions": [
       "ai.complete",
       "vfs.read",
-      "vfs.write"
+      "vfs.write",
+      "notify"
     ],
+    "actions": {
+      "categorizeTransactions": {
+        "permission": "actions.write",
+        "description": "Run the AI categorizer over the user's transactions and sort each into a budget category. Optionally scope to a single month with a `month` param (e.g. \"February\", \"Feb 2026\", or \"2026-02\"); omit it to cover every month. Auto-applies high-confidence categories and flags the uncertain ones for review. Use for requests like 'do February's budget and categorize everything', 'categorize my recent transactions', or 'sort last month's spending'."
+      },
+      "findRecurring": {
+        "permission": "actions.read",
+        "description": "Detect recurring charges from the user's transactions and summarize their subscriptions, recurring bills and monthly cost. Use for 'what subscriptions am I paying for?', 'find my recurring charges', or 'how much do my subscriptions cost?'."
+      },
+      "buildBudgetFromHistory": {
+        "permission": "actions.write",
+        "description": "Create monthly budgets for each spending category, sized from the average of the user's recent months plus a small buffer. Use for 'set up my budget', 'build a budget from my spending', or 'make me a monthly budget'."
+      }
+    },
     "promptSuggestions": [
-      "Categorize my recent transactions",
-      "How much did I spend on groceries this month?",
+      "Do February's budget and categorize everything",
+      "What subscriptions am I paying for?",
+      "Set up my budget from my spending",
       "Show my spending by category"
     ]
   },

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useFinance } from "../store/FinanceContext";
 import { getTierContext, setTierContext, type InferenceBudget } from "../orchestrator";
 import { useHostUser } from "../platform/useHostUser";
+import { BankConnections } from "./BankConnections";
 
 const API_MODE = (import.meta.env.VITE_FINANCE_API as string) || "mock";
 const INFERENCE_MODE = (import.meta.env.VITE_INFERENCE_PROVIDER as string) || "heuristic";
@@ -71,6 +72,10 @@ export function Settings() {
             second login. Your encryption key is still derived locally and never shared with the host.
           </p>
         )}
+      </div>
+
+      <div style={{ marginBottom: 16 }}>
+        <BankConnections />
       </div>
 
       <div className="grid grid-2">

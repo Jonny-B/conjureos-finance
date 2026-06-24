@@ -9,12 +9,21 @@ import type {
   Category,
   DashboardSummary,
   DateRange,
+  ManualAsset,
   Page,
+  SavingsGoal,
   Transaction,
   TransactionQuery,
 } from "../types";
 import { LocalStore } from "../store";
-import { ACCOUNTS, SEED_BUDGETS, SYSTEM_CATEGORIES, buildSeedTransactions } from "./data";
+import {
+  ACCOUNTS,
+  SEED_BUDGETS,
+  SEED_GOALS,
+  SEED_MANUAL_ASSETS,
+  SYSTEM_CATEGORIES,
+  buildSeedTransactions,
+} from "./data";
 
 let nextId = 1;
 const genId = (prefix: string) => `${prefix}_${Date.now().toString(36)}_${nextId++}`;
@@ -33,6 +42,8 @@ export class MockFinanceApi implements FinanceApi {
       categories: [...SYSTEM_CATEGORIES],
       transactions: buildSeedTransactions(anchor),
       budgets: [...SEED_BUDGETS],
+      manualAssets: [...SEED_MANUAL_ASSETS],
+      savingsGoals: [...SEED_GOALS],
     });
   }
 
@@ -128,6 +139,45 @@ export class MockFinanceApi implements FinanceApi {
 
   async deleteBudget(id: string): Promise<void> {
     this.store.removeBudget(id);
+    return delay(undefined);
+  }
+
+  // ---- manual assets ---------------------------------------------------
+  listManualAssets(): Promise<ManualAsset[]> {
+    return delay(this.store.listManualAssets());
+  }
+
+  async upsertManualAsset(input: Omit<ManualAsset, "id"> & { id?: string }): Promise<ManualAsset> {
+    const asset: ManualAsset = { ...input, id: input.id ?? genId("asset") };
+    this.store.upsertManualAsset(asset);
+    return delay(asset);
+  }
+
+  async deleteManualAsset(id: string): Promise<void> {
+    this.store.removeManualAsset(id);
+    return delay(undefined);
+  }
+
+  // ---- savings goals ---------------------------------------------------
+  listSavingsGoals(): Promise<SavingsGoal[]> {
+    return delay(this.store.listSavingsGoals());
+  }
+
+  async upsertSavingsGoal(
+    input: Omit<SavingsGoal, "id" | "createdAt"> & { id?: string },
+  ): Promise<SavingsGoal> {
+    const existing = input.id ? this.store.listSavingsGoals().find((g) => g.id === input.id) : undefined;
+    const goal: SavingsGoal = {
+      ...input,
+      id: input.id ?? genId("goal"),
+      createdAt: existing?.createdAt ?? new Date().toISOString(),
+    };
+    this.store.upsertSavingsGoal(goal);
+    return delay(goal);
+  }
+
+  async deleteSavingsGoal(id: string): Promise<void> {
+    this.store.removeSavingsGoal(id);
     return delay(undefined);
   }
 

@@ -2,7 +2,7 @@
 // are stable. A contributor gets a believable multi-month dataset with zero
 // backend access.
 
-import type { Account, Budget, Category, Transaction } from "../types";
+import type { Account, Budget, Category, ManualAsset, SavingsGoal, Transaction } from "../types";
 
 // ---- system categories -----------------------------------------------------
 export const SYSTEM_CATEGORIES: Category[] = [
@@ -22,8 +22,30 @@ export const SYSTEM_CATEGORIES: Category[] = [
 
 export const ACCOUNTS: Account[] = [
   { id: "acc_checking", name: "Everyday Checking", institution: "Conjure Bank", mask: "4821", type: "checking", balanceCents: 482_300, currency: "USD" },
-  { id: "acc_credit", name: "Rewards Card", institution: "Conjure Bank", mask: "9920", type: "credit", balanceCents: -128_745, currency: "USD" },
+  {
+    id: "acc_credit",
+    name: "Rewards Card",
+    institution: "Conjure Bank",
+    mask: "9920",
+    type: "credit",
+    balanceCents: -128_745,
+    currency: "USD",
+    // Mirrors Plaid's Liabilities product; populated for real once Plaid lands.
+    liability: { aprPct: 21.49, nextPaymentDate: "2026-06-12", minPaymentCents: 3_500, statementBalanceCents: 128_745 },
+  },
   { id: "acc_savings", name: "Rainy Day", institution: "Conjure Bank", mask: "1142", type: "savings", balanceCents: 1_204_500, currency: "USD" },
+];
+
+// User-entered assets/debts that aren't linked accounts (home, car, mortgage).
+export const SEED_MANUAL_ASSETS: ManualAsset[] = [
+  { id: "asset_home", name: "Home", kind: "property", valueCents: 46_500_000 },
+  { id: "asset_car", name: "Honda Civic", kind: "vehicle", valueCents: 1_420_000 },
+  { id: "asset_mortgage", name: "Mortgage", kind: "debt", valueCents: 31_840_000 },
+];
+
+export const SEED_GOALS: SavingsGoal[] = [
+  { id: "goal_emergency", name: "Emergency fund", targetCents: 1_500_000, savedCents: 620_000, createdAt: "2026-02-01T00:00:00.000Z" },
+  { id: "goal_japan", name: "Japan trip", targetCents: 500_000, savedCents: 145_000, createdAt: "2026-03-10T00:00:00.000Z" },
 ];
 
 // merchant -> [categoryId, account, low, high] (amounts in dollars, spend)

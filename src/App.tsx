@@ -10,8 +10,13 @@ import { Layout } from "./components/Layout";
 import { Dashboard } from "./components/Dashboard";
 import { Transactions } from "./components/Transactions";
 import { ReviewQueue } from "./components/ReviewQueue";
+import { Recurring } from "./components/Recurring";
+import { Spending } from "./components/Spending";
+import { Alerts } from "./components/Alerts";
+import { NetWorth } from "./components/NetWorth";
 import { Budgets } from "./components/Budgets";
 import { Categories } from "./components/Categories";
+import { More } from "./components/More";
 import { Settings } from "./components/Settings";
 
 export function App() {
@@ -21,10 +26,15 @@ export function App() {
         <Routes>
           <Route element={<Layout />}>
             <Route index element={<Dashboard />} />
+            <Route path="spending" element={<Spending />} />
+            <Route path="net-worth" element={<NetWorth />} />
             <Route path="transactions" element={<Transactions />} />
+            <Route path="recurring" element={<Recurring />} />
             <Route path="review" element={<ReviewQueue />} />
+            <Route path="alerts" element={<Alerts />} />
             <Route path="budgets" element={<Budgets />} />
             <Route path="categories" element={<Categories />} />
+            <Route path="more" element={<More />} />
             <Route path="settings" element={<Settings />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
