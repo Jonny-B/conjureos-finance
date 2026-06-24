@@ -67,26 +67,30 @@ export function Layout() {
           <span className="brand-mark">◈</span>
           Conjure Finance
         </div>
-        {NAV.map((item) => {
-          const count = item.badge ? counts[item.badge] : 0;
-          return (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
-              className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}
-            >
-              <span>{item.icon}</span>
-              {item.label}
-              {item.badge && count > 0 && <span className="nav-badge">{count}</span>}
-            </NavLink>
-          );
-        })}
+        <nav className="nav-links">
+          {NAV.map((item) => {
+            const count = item.badge ? counts[item.badge] : 0;
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.end}
+                className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}
+              >
+                <span>{item.icon}</span>
+                {item.label}
+                {item.badge && count > 0 && <span className="nav-badge">{count}</span>}
+              </NavLink>
+            );
+          })}
+        </nav>
         <div className="nav-spacer" />
-        <div className="nav-link faint" style={{ fontSize: 11, cursor: "default" }}>
+        <div className="nav-link faint sidebar-aux" style={{ fontSize: 11, cursor: "default" }}>
           🔒 End-to-end encrypted
         </div>
-        <UserBadge />
+        <div className="sidebar-aux">
+          <UserBadge />
+        </div>
       </aside>
       <main className="main">
         <Outlet />

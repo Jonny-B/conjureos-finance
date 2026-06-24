@@ -104,63 +104,65 @@ export function Transactions() {
       </div>
 
       <div className="cui-card" style={{ padding: 0 }}>
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Merchant</th>
-              <th>Category</th>
-              <th>Status</th>
-              <th style={{ textAlign: "right" }}>Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            {page?.items.map((t) => (
-              <tr key={t.id}>
-                <td className="faint" style={{ whiteSpace: "nowrap" }}>{formatDate(t.date)}</td>
-                <td>
-                  <div className="row" style={{ gap: 10 }}>
-                    <MerchantLogo merchant={t.merchantName} raw={t.rawDescription} />
-                    <div style={{ minWidth: 0 }}>
-                      <div>{t.merchantName}</div>
-                      <div className="faint" style={{ fontSize: 12 }}>{t.rawDescription}</div>
-                    </div>
-                  </div>
-                </td>
-                <td>
-                  {editing === t.id ? (
-                    <div style={{ maxWidth: 220 }}>
-                      <CategorySelect
-                        value={t.categorization.categoryId}
-                        onChange={(c) => recategorize(t.id, c)}
-                      />
-                    </div>
-                  ) : (
-                    <button className="cui-button cui-button--ghost btn-sm" onClick={() => setEditing(t.id)} title="Recategorize">
-                      <CategoryChip category={catMap.get(t.categorization.categoryId ?? "")} />
-                    </button>
-                  )}
-                </td>
-                <td>
-                  <StatusBadge status={t.categorization.status} confidence={t.categorization.confidence} />
-                </td>
-                <td className={`amount ${t.amountCents >= 0 ? "pos" : ""}`}>
-                  {formatCurrency(t.amountCents)}
-                </td>
-              </tr>
-            ))}
-            {!loading && page?.items.length === 0 && (
+        <div className="table-scroll">
+          <table className="table">
+            <thead>
               <tr>
-                <td colSpan={5} className="empty">No transactions match your filters.</td>
+                <th>Date</th>
+                <th>Merchant</th>
+                <th className="col-cat">Category</th>
+                <th className="col-status">Status</th>
+                <th style={{ textAlign: "right" }}>Amount</th>
               </tr>
-            )}
-            {loading && (
-              <tr>
-                <td colSpan={5} className="empty">Loading…</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {page?.items.map((t) => (
+                <tr key={t.id}>
+                  <td className="faint" style={{ whiteSpace: "nowrap" }}>{formatDate(t.date)}</td>
+                  <td>
+                    <div className="row" style={{ gap: 10 }}>
+                      <MerchantLogo merchant={t.merchantName} raw={t.rawDescription} />
+                      <div style={{ minWidth: 0 }}>
+                        <div>{t.merchantName}</div>
+                        <div className="faint txn-raw" style={{ fontSize: 12 }}>{t.rawDescription}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="col-cat">
+                    {editing === t.id ? (
+                      <div style={{ maxWidth: 220 }}>
+                        <CategorySelect
+                          value={t.categorization.categoryId}
+                          onChange={(c) => recategorize(t.id, c)}
+                        />
+                      </div>
+                    ) : (
+                      <button className="cui-button cui-button--ghost btn-sm" onClick={() => setEditing(t.id)} title="Recategorize">
+                        <CategoryChip category={catMap.get(t.categorization.categoryId ?? "")} />
+                      </button>
+                    )}
+                  </td>
+                  <td className="col-status">
+                    <StatusBadge status={t.categorization.status} confidence={t.categorization.confidence} />
+                  </td>
+                  <td className={`amount ${t.amountCents >= 0 ? "pos" : ""}`}>
+                    {formatCurrency(t.amountCents)}
+                  </td>
+                </tr>
+              ))}
+              {!loading && page?.items.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="empty">No transactions match your filters.</td>
+                </tr>
+              )}
+              {loading && (
+                <tr>
+                  <td colSpan={5} className="empty">Loading…</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </>
   );
