@@ -914,6 +914,10 @@ button {
      bottom tab bar, modeled on Rocket Money's mobile chrome. */
   .app {
     grid-template-columns: minmax(0, 1fr);
+    /* Pin rows: header sized to its content, main takes the rest. Without this,
+       the grid's default align-content stretches the (short) header row to
+       absorb leftover viewport height — ballooning the gradient banner. */
+    grid-template-rows: auto 1fr;
   }
   .sidebar {
     display: none;
@@ -923,7 +927,7 @@ button {
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 11px 16px;
+    padding: 8px 16px;
     position: sticky;
     top: 0;
     z-index: 20;
@@ -931,14 +935,14 @@ button {
     color: #fff;
   }
   .app-header .ah-title {
-    font-size: 17px;
+    font-size: 15px;
     font-weight: 700;
     letter-spacing: -0.01em;
   }
+  /* Subtitle dropped on mobile to save vertical space — the page content makes
+     the context obvious, and screen real estate is tight on phones. */
   .app-header .ah-sub {
-    font-size: 12px;
-    opacity: 0.85;
-    margin-top: 1px;
+    display: none;
   }
   /* Drill-down pages (reached from Extras): plain compact bar, no gradient
      banner, with a back affordance. */
