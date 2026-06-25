@@ -923,7 +923,7 @@ button {
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 14px 16px;
+    padding: 11px 16px;
     position: sticky;
     top: 0;
     z-index: 20;
@@ -931,7 +931,7 @@ button {
     color: #fff;
   }
   .app-header .ah-title {
-    font-size: 19px;
+    font-size: 17px;
     font-weight: 700;
     letter-spacing: -0.01em;
   }
@@ -939,6 +939,30 @@ button {
     font-size: 12px;
     opacity: 0.85;
     margin-top: 1px;
+  }
+  /* Drill-down pages (reached from Extras): plain compact bar, no gradient
+     banner, with a back affordance. */
+  .app-header.plain {
+    background: var(--bg-elev);
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+    justify-content: flex-start;
+    gap: 6px;
+    padding: 10px 10px;
+  }
+  .app-header.plain .ah-title {
+    font-size: 16px;
+  }
+  .ah-back {
+    background: transparent;
+    border: none;
+    color: var(--text);
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    font-size: 15px;
+    flex: none;
   }
   .tabbar {
     display: grid;
@@ -991,7 +1015,7 @@ button {
     display: none;
   }
   .hero-card {
-    scroll-snap-align: center;
+    scroll-snap-align: start;
   }
   .hero-dots {
     display: flex;

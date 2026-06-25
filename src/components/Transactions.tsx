@@ -102,7 +102,7 @@ export function Transactions() {
           <option value="">All categories</option>
           {categories.map((c) => (
             <option key={c.id} value={c.id}>
-              {c.icon} {c.name}
+              {c.name}
             </option>
           ))}
         </select>

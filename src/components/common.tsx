@@ -1,24 +1,48 @@
 import type { CategorizationStatus, Category } from "../api/types";
 import { useFinance } from "../store/FinanceContext";
-import { enrichMerchant } from "../enrich/merchant";
+import { Icon, categoryIcon, faTag } from "../lib/icons";
 
-/** A small round merchant "logo": an enrichment glyph in a tinted circle.
- *  No network in mock mode — a real logo provider would slot in via enrich. */
-export function MerchantLogo({ merchant, raw, size = 30 }: { merchant: string; raw?: string; size?: number }) {
-  const { emoji } = enrichMerchant(merchant, raw);
+/** Stable hue from a string, so a merchant always gets the same colored chip. */
+function hueFor(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 360;
+  return h;
+}
+
+/** A small round merchant "logo": the merchant's initial in a colored circle.
+ *  A real logo provider (Plaid Enrich / Clearbit) would slot in behind this. */
+export function MerchantLogo({ merchant, size = 34 }: { merchant: string; raw?: string; size?: number }) {
+  const initial = (merchant.trim()[0] ?? "?").toUpperCase();
+  const hue = hueFor(merchant || "?");
   return (
-    <span className="merchant-logo" style={{ width: size, height: size, fontSize: Math.round(size * 0.5) }}>
-      {emoji}
+    <span
+      className="merchant-logo"
+      style={{
+        width: size,
+        height: size,
+        fontSize: Math.round(size * 0.42),
+        fontWeight: 700,
+        color: "#fff",
+        border: "none",
+        background: `hsl(${hue} 42% 34%)`,
+      }}
+    >
+      {initial}
     </span>
   );
 }
 
 export function CategoryChip({ category }: { category: Category | undefined }) {
-  if (!category) return <span className="cui-chip cui-dim">Uncategorized</span>;
+  if (!category)
+    return (
+      <span className="cui-chip cui-dim">
+        <Icon icon={faTag} /> Uncategorized
+      </span>
+    );
   return (
     <span className="cui-chip">
-      <span className="dot" style={{ background: category.color }} />
-      {category.icon} {category.name}
+      <Icon icon={categoryIcon(category.id)} style={{ color: category.color }} />
+      {category.name}
     </span>
   );
 }
@@ -62,7 +86,7 @@ export function CategorySelect({
       {allowNone && <option value="">Uncategorized</option>}
       {categories.map((c) => (
         <option key={c.id} value={c.id}>
-          {c.icon} {c.name}
+          {c.name}
         </option>
       ))}
     </select>

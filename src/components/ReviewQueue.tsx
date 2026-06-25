@@ -3,6 +3,7 @@ import { useFinance, useCategoryMap } from "../store/FinanceContext";
 import type { Transaction } from "../api/types";
 import { summarizeRun, type CategorizationRunResult } from "../orchestrator";
 import { formatCurrency, formatDate } from "../lib/format";
+import { Icon, faLightbulb, faRobot, faCircleCheck } from "../lib/icons";
 import { CategoryChip, CategorySelect, Spinner } from "./common";
 
 export function ReviewQueue() {
@@ -57,13 +58,13 @@ export function ReviewQueue() {
       </div>
 
       <div className="hint">
-        💡 Tip: ask ConjureOS to <em>“do February’s budget and categorize everything”</em> to sort a
-        whole month at once, without opening this page.
+        <Icon icon={faLightbulb} /> <span>Tip: ask ConjureOS to <em>“do February’s budget and categorize everything”</em> to sort a
+        whole month at once, without opening this page.</span>
       </div>
 
       {lastRun && (
         <div className={`banner ${lastRun.needsReview > 0 ? "warn" : "success"}`}>
-          <span>{lastRun.needsReview > 0 ? "🤖" : "✅"}</span>
+          <span><Icon icon={lastRun.needsReview > 0 ? faRobot : faCircleCheck} /></span>
           <div>{summarizeRun(lastRun)}</div>
         </div>
       )}
@@ -72,7 +73,7 @@ export function ReviewQueue() {
         <Spinner />
       ) : queue.length === 0 ? (
         <div className="cui-card empty">
-          🎉 All clear. Everything we were confident about is categorized.
+          <Icon icon={faCircleCheck} /> All clear. Everything we were confident about is categorized.
           <div className="muted" style={{ marginTop: 8 }}>
             Run it again, or ask ConjureOS, once new transactions come in.
           </div>
@@ -99,7 +100,7 @@ export function ReviewQueue() {
 
                 {t.categorization.reasoning && (
                   <div className="muted" style={{ margin: "10px 0", fontSize: 13 }}>
-                    🤖 {t.categorization.reasoning}
+                    <Icon icon={faRobot} /> {t.categorization.reasoning}
                   </div>
                 )}
 

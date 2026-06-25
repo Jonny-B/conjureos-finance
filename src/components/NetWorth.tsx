@@ -3,14 +3,15 @@ import { useFinance } from "../store/FinanceContext";
 import type { Account, ManualAssetKind } from "../api/types";
 import { computeNetWorth } from "../analytics/networth";
 import { formatCurrency, formatDate } from "../lib/format";
+import { Icon, faSackDollar, faCreditCard } from "../lib/icons";
 
 const ASSET_KINDS: { value: ManualAssetKind; label: string }[] = [
-  { value: "property", label: "🏠 Property" },
-  { value: "vehicle", label: "🚗 Vehicle" },
-  { value: "investment", label: "📈 Investment" },
-  { value: "cash", label: "💵 Cash" },
-  { value: "other", label: "📦 Other asset" },
-  { value: "debt", label: "💳 Debt / loan" },
+  { value: "property", label: "Property" },
+  { value: "vehicle", label: "Vehicle" },
+  { value: "investment", label: "Investment" },
+  { value: "cash", label: "Cash" },
+  { value: "other", label: "Other asset" },
+  { value: "debt", label: "Debt / loan" },
 ];
 
 export function NetWorth() {
@@ -101,7 +102,7 @@ export function NetWorth() {
 
       <div className="grid grid-2">
         <div className="cui-card">
-          <div className="card-title">💰 Assets</div>
+          <div className="card-title"><Icon icon={faSackDollar} /> Assets</div>
           <div className="grid" style={{ gap: 2 }}>
             {assetAccounts.map((a) => (
               <Row key={a.id} name={a.name} detail={`${a.institution} ····${a.mask}`} amountCents={a.balanceCents} />
@@ -114,7 +115,7 @@ export function NetWorth() {
         </div>
 
         <div className="cui-card">
-          <div className="card-title">💳 Debts</div>
+          <div className="card-title"><Icon icon={faCreditCard} /> Debts</div>
           <div className="grid" style={{ gap: 2 }}>
             {debtAccounts.map((a) => (
               <DebtRow key={a.id} account={a} />

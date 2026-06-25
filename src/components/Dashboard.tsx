@@ -1,22 +1,22 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useFinance } from "../store/FinanceContext";
-import type { Account, DashboardSummary, Transaction } from "../api/types";
+import type { DashboardSummary, Transaction } from "../api/types";
 import { computeNetWorth } from "../analytics/networth";
 import { detectRecurring } from "../analytics/recurring";
 import { computeAlerts, type FinanceAlert } from "../analytics/alerts";
 import { daysBetween } from "../analytics/dates";
 import { formatCurrency, todayISO } from "../lib/format";
+import {
+  Icon,
+  accountIcon,
+  faCalendarDay,
+  faChartColumn,
+  faGem,
+  faTriangleExclamation,
+  faBell,
+} from "../lib/icons";
 import { Spinner } from "./common";
-
-const ACCT_ICON: Record<Account["type"], string> = {
-  checking: "🏦",
-  savings: "🐷",
-  credit: "💳",
-  investment: "📈",
-  loan: "🏠",
-  cash: "💵",
-};
 
 function prevMonthStart(): string {
   const today = todayISO();
@@ -95,7 +95,7 @@ export function Dashboard() {
 
       {banner && (
         <Link to="/alerts" className={`banner ${banner.severity === "danger" ? "danger" : "warn"}`} style={{ textDecoration: "none" }}>
-          <span style={{ fontSize: 18 }}>{banner.severity === "danger" ? "⚠️" : "🔔"}</span>
+          <span style={{ fontSize: 16 }}><Icon icon={banner.severity === "danger" ? faTriangleExclamation : faBell} /></span>
           <div style={{ minWidth: 0 }}>
             <strong>{banner.title}</strong>
             <div className="faint" style={{ fontSize: 12 }}>{banner.message}</div>
@@ -124,7 +124,7 @@ export function Dashboard() {
         ) : (
           accounts.map((a) => (
             <div key={a.id} className="acct-row">
-              <span className="cat-ico" style={{ background: "var(--bg-elev-2)" }}>{ACCT_ICON[a.type]}</span>
+              <span className="cat-ico" style={{ background: "var(--bg-elev-2)" }}><Icon icon={accountIcon(a.type)} /></span>
               <div style={{ minWidth: 0 }}>
                 <div className="acct-name">{a.name}</div>
                 <div className="acct-sub">{a.institution} ··{a.mask}</div>
@@ -172,7 +172,7 @@ function HeroCarousel({
               : `↑ ${formatCurrency(Math.abs(delta))} above last month`}
           </div>
           <div className="hero-foot">
-            <span style={{ fontSize: 16 }}>{payday ? "📅" : "💸"}</span>
+            <span style={{ fontSize: 15 }}><Icon icon={payday ? faCalendarDay : faChartColumn} /></span>
             {payday ? (
               <span>
                 Payday {payday.days === 0 ? "today" : `in ${payday.days} day${payday.days === 1 ? "" : "s"}`}
@@ -193,7 +193,7 @@ function HeroCarousel({
             {formatCurrency(nw.assetsCents)} assets · {formatCurrency(nw.liabilitiesCents)} debt
           </div>
           <div className="hero-foot">
-            <span style={{ fontSize: 16 }}>💎</span>
+            <span style={{ fontSize: 15 }}><Icon icon={faGem} /></span>
             <span className="muted">View breakdown ›</span>
           </div>
         </Link>

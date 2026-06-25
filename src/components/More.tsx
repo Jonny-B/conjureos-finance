@@ -3,23 +3,34 @@ import { Link } from "react-router-dom";
 import { useFinance } from "../store/FinanceContext";
 import { detectRecurring } from "../analytics/recurring";
 import { computeAlerts } from "../analytics/alerts";
+import {
+  Icon,
+  type IconDefinition,
+  faMoneyBills,
+  faGem,
+  faTag,
+  faBell,
+  faTriangleExclamation,
+  faGear,
+  faLock,
+} from "../lib/icons";
 
 interface Tile {
   to: string;
   label: string;
-  icon: string;
+  icon: IconDefinition;
   sub: string;
   badge?: "review" | "alerts";
 }
 
 // Secondary destinations. Goals + Credit Score are intentionally omitted.
 const TILES: Tile[] = [
-  { to: "/budgets", label: "Budget", icon: "🧮", sub: "Caps & where you stand" },
-  { to: "/net-worth", label: "Net worth", icon: "💎", sub: "Assets minus debts" },
-  { to: "/categories", label: "Categories", icon: "🏷️", sub: "Manage your buckets" },
-  { to: "/review", label: "Review", icon: "🔔", sub: "Confirm uncertain ones", badge: "review" },
-  { to: "/alerts", label: "Alerts", icon: "⚠️", sub: "Things worth a look", badge: "alerts" },
-  { to: "/settings", label: "Settings", icon: "⚙️", sub: "Account & connections" },
+  { to: "/budgets", label: "Budget", icon: faMoneyBills, sub: "Caps & where you stand" },
+  { to: "/net-worth", label: "Net worth", icon: faGem, sub: "Assets minus debts" },
+  { to: "/categories", label: "Categories", icon: faTag, sub: "Manage your buckets" },
+  { to: "/review", label: "Review", icon: faBell, sub: "Confirm uncertain ones", badge: "review" },
+  { to: "/alerts", label: "Alerts", icon: faTriangleExclamation, sub: "Things worth a look", badge: "alerts" },
+  { to: "/settings", label: "Settings", icon: faGear, sub: "Account & connections" },
 ];
 
 export function More() {
@@ -47,7 +58,7 @@ export function More() {
     <>
       <div className="page-head">
         <div>
-          <div className="page-title">More</div>
+          <div className="page-title">Extras</div>
           <div className="page-sub">Everything else</div>
         </div>
       </div>
@@ -57,7 +68,7 @@ export function More() {
           const count = t.badge ? counts[t.badge] : 0;
           return (
             <Link key={t.to} to={t.to} data-nav={t.to} className="cui-card more-tile">
-              <span className="mt-ico">{t.icon}</span>
+              <span className="mt-ico"><Icon icon={t.icon} /></span>
               <div>
                 <div className="mt-label">{t.label}</div>
                 <div className="mt-sub">{t.sub}</div>
@@ -69,7 +80,8 @@ export function More() {
       </div>
 
       <div className="hint" style={{ marginTop: 16 }}>
-        🔒 <span>Your data is end-to-end encrypted. Ask ConjureOS to <em>"categorize this month"</em> any time.</span>
+        <Icon icon={faLock} />
+        <span>Your data is end-to-end encrypted. Ask ConjureOS to <em>"categorize this month"</em> any time.</span>
       </div>
     </>
   );

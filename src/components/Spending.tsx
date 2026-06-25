@@ -13,6 +13,7 @@ import { useFinance } from "../store/FinanceContext";
 import type { DashboardSummary, Transaction } from "../api/types";
 import { addDays, daysBetween, monthKey } from "../analytics/dates";
 import { formatCurrency, monthLabel, todayISO } from "../lib/format";
+import { Icon, faSackDollar, faMoneyBillTransfer } from "../lib/icons";
 import { Spinner } from "./common";
 
 type Period = "week" | "month" | "quarter" | "year";
@@ -154,7 +155,7 @@ export function Spending() {
                   {formatCurrency(dash.totalIncomeCents)}
                 </div>
               </div>
-              <span style={{ fontSize: 22 }}>💰</span>
+              <span style={{ fontSize: 20, color: "var(--good)" }}><Icon icon={faSackDollar} /></span>
             </div>
             <div className="cui-card row between" style={{ alignItems: "center" }}>
               <div>
@@ -163,7 +164,7 @@ export function Spending() {
                   {formatCurrency(dash.totalSpentCents)}
                 </div>
               </div>
-              <span style={{ fontSize: 22 }}>💸</span>
+              <span style={{ fontSize: 20, color: "var(--accent)" }}><Icon icon={faMoneyBillTransfer} /></span>
             </div>
           </div>
 

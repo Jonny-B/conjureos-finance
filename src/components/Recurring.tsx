@@ -10,6 +10,7 @@ import {
 } from "../analytics/recurring";
 import { addDays, daysBetween } from "../analytics/dates";
 import { formatCurrency, formatDate, todayISO } from "../lib/format";
+import { Icon, type IconDefinition, faArrowsRotate, faFileInvoiceDollar, faMoneyBillWave } from "../lib/icons";
 import { CategoryChip, MerchantLogo, Spinner } from "./common";
 
 export function Recurring() {
@@ -112,9 +113,9 @@ export function Recurring() {
             <Tile label="Recurring income" value={formatCurrency(sum(income))} sub={`${income.length} sources`} cls="pos" />
           </div>
 
-          <StreamSection title="Subscriptions" icon="🔁" streams={subscriptions} catMap={catMap} />
-          <StreamSection title="Bills" icon="🧾" streams={bills} catMap={catMap} />
-          <StreamSection title="Income" icon="💰" streams={income} catMap={catMap} />
+          <StreamSection title="Subscriptions" icon={faArrowsRotate} streams={subscriptions} catMap={catMap} />
+          <StreamSection title="Bills" icon={faFileInvoiceDollar} streams={bills} catMap={catMap} />
+          <StreamSection title="Income" icon={faMoneyBillWave} streams={income} catMap={catMap} />
         </div>
       )}
     </>
@@ -138,14 +139,14 @@ function StreamSection({
   catMap,
 }: {
   title: string;
-  icon: string;
+  icon: IconDefinition;
   streams: RecurringStream[];
   catMap: ReturnType<typeof useCategoryMap>;
 }) {
   if (streams.length === 0) return null;
   return (
     <div className="cui-card">
-      <div className="card-title">{icon} {title}</div>
+      <div className="card-title"><Icon icon={icon} /> {title}</div>
       <div className="grid" style={{ gap: 2 }}>
         {streams.map((s) => (
           <div key={s.key} className={`recurring-row${s.status === "inactive" ? " inactive" : ""}`}>

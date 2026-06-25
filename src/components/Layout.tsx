@@ -6,10 +6,26 @@ import { computeAlerts } from "../analytics/alerts";
 import { hostNotify } from "../platform/host";
 import { UserBadge } from "./UserBadge";
 import { RunToast } from "./RunToast";
+import {
+  Icon,
+  type IconDefinition,
+  faHouse,
+  faArrowsRotate,
+  faChartColumn,
+  faMagnifyingGlass,
+  faEllipsis,
+  faGem,
+  faTag,
+  faBell,
+  faTriangleExclamation,
+  faGear,
+  faMoneyBills,
+  faChevronLeft,
+  faLock,
+} from "../lib/icons";
 
 // Alerts already pushed to ConjureOS notifications this session — so a re-render
-// or refresh doesn't re-fire the same nudge. (Background/push delivery when the
-// app is closed is a backend seam: Plaid webhook → edge function → notify.)
+// or refresh doesn't re-fire the same nudge.
 const notifiedAlertIds = new Set<string>();
 
 type BadgeKey = "review" | "alerts";
@@ -17,38 +33,40 @@ type BadgeKey = "review" | "alerts";
 interface NavItem {
   to: string;
   label: string;
-  /** sidebar / more-grid glyph */
-  icon: string;
-  /** bottom-tab glyph (mobile) */
-  tab?: string;
+  icon: IconDefinition;
   sub?: string;
   end?: boolean;
   badge?: BadgeKey;
 }
 
-// Primary destinations — the mobile bottom tab bar + the top of the desktop sidebar.
+// Primary destinations — mobile bottom tab bar + top of the desktop sidebar.
 const PRIMARY: NavItem[] = [
-  { to: "/", label: "Dashboard", icon: "🏠", tab: "🏠", sub: "Your money at a glance", end: true },
-  { to: "/recurring", label: "Recurring", icon: "🔁", tab: "🔁", sub: "Subscriptions, bills & income" },
-  { to: "/spending", label: "Spending", icon: "📊", tab: "📊", sub: "Where your money goes" },
-  { to: "/transactions", label: "Transactions", icon: "🧾", tab: "🔍", sub: "Every charge, searchable" },
+  { to: "/", label: "Dashboard", icon: faHouse, sub: "Your money at a glance", end: true },
+  { to: "/recurring", label: "Recurring", icon: faArrowsRotate, sub: "Subscriptions, bills & income" },
+  { to: "/spending", label: "Spending", icon: faChartColumn, sub: "Where your money goes" },
+  { to: "/transactions", label: "Transactions", icon: faMagnifyingGlass, sub: "Every charge, searchable" },
 ];
 
-// Secondary destinations — the "More" sheet (mobile) + a grouped section in the
-// desktop sidebar. Goals + Credit Score are intentionally absent.
+// Secondary destinations — the "Extras" sheet (mobile) + a grouped sidebar
+// section (desktop). Goals + Credit Score are intentionally absent.
 const MORE: NavItem[] = [
-  { to: "/budgets", label: "Budget", icon: "🧮", sub: "Caps & where you stand" },
-  { to: "/net-worth", label: "Net worth", icon: "💎", sub: "Assets minus debts" },
-  { to: "/categories", label: "Categories", icon: "🏷️", sub: "Manage your buckets" },
-  { to: "/review", label: "Review", icon: "🔔", sub: "Confirm uncertain ones", badge: "review" },
-  { to: "/alerts", label: "Alerts", icon: "⚠️", sub: "Things worth a look", badge: "alerts" },
-  { to: "/settings", label: "Settings", icon: "⚙️", sub: "Account & connections" },
+  { to: "/budgets", label: "Budget", icon: faMoneyBills, sub: "Caps & where you stand" },
+  { to: "/net-worth", label: "Net worth", icon: faGem, sub: "Assets minus debts" },
+  { to: "/categories", label: "Categories", icon: faTag, sub: "Manage your buckets" },
+  { to: "/review", label: "Review", icon: faBell, sub: "Confirm uncertain ones", badge: "review" },
+  { to: "/alerts", label: "Alerts", icon: faTriangleExclamation, sub: "Things worth a look", badge: "alerts" },
+  { to: "/settings", label: "Settings", icon: faGear, sub: "Account & connections" },
 ];
 
 const HEADER: Record<string, { title: string; sub?: string }> = {
-  "/more": { title: "More", sub: "Everything else" },
+  "/more": { title: "Extras", sub: "Everything else" },
   ...Object.fromEntries([...PRIMARY, ...MORE].map((i) => [i.to, { title: i.label, sub: i.sub }])),
 };
+
+// Routes that get the branded gradient header. Everything else (the drill-down
+// pages reached from Extras) gets a plain, compact back-header — so Settings &
+// friends don't carry a big banner.
+const PRIMARY_ROUTES = new Set(["/", "/recurring", "/spending", "/transactions", "/more"]);
 
 export function Layout() {
   const { api, categories, accounts, revision, runAnnouncement } = useFinance();
@@ -68,10 +86,6 @@ export function Layout() {
       const alerts = computeAlerts({ accounts, budgets, categories, transactions: txnPage.items, streams });
       if (cancelled) return;
       setCounts({ review: queue.length, alerts: alerts.length });
-      // Foreground-deliver the urgent ones to ConjureOS notifications, once each.
-      // Guard on categories being loaded so alert copy has real names (not the
-      // "Category" fallback) — and so we don't poison the dedup set on the first
-      // render when context categories are still empty.
       if (categories.length > 0) {
         for (const a of alerts) {
           if (a.severity !== "danger" || notifiedAlertIds.has(a.id)) continue;
@@ -88,6 +102,7 @@ export function Layout() {
   const moreBadge = counts.review + counts.alerts;
   const onMore = location.pathname === "/more" || MORE.some((m) => m.to === location.pathname);
   const head = HEADER[location.pathname] ?? { title: "Conjure Finance" };
+  const isPrimary = PRIMARY_ROUTES.has(location.pathname);
 
   return (
     <div className="app">
@@ -101,30 +116,36 @@ export function Layout() {
           {PRIMARY.map((item) => (
             <SidebarLink key={item.to} item={item} counts={counts} />
           ))}
-          <div className="nav-group-label">More</div>
+          <div className="nav-group-label">Extras</div>
           {MORE.map((item) => (
             <SidebarLink key={item.to} item={item} counts={counts} />
           ))}
         </nav>
         <div className="nav-spacer" />
         <div className="nav-link faint sidebar-aux" style={{ fontSize: 11, cursor: "default" }}>
-          🔒 End-to-end encrypted
+          <Icon icon={faLock} /> End-to-end encrypted
         </div>
         <div className="sidebar-aux">
           <UserBadge />
         </div>
       </aside>
 
-      {/* ---- mobile gradient header ---- */}
-      <header className="app-header">
-        <div style={{ minWidth: 0 }}>
+      {/* ---- mobile header: gradient on primary tabs, plain back-bar elsewhere ---- */}
+      {isPrimary ? (
+        <header className="app-header">
+          <div style={{ minWidth: 0 }}>
+            <div className="ah-title">{head.title}</div>
+            {head.sub && <div className="ah-sub">{head.sub}</div>}
+          </div>
+        </header>
+      ) : (
+        <header className="app-header plain">
+          <button className="ah-back" aria-label="Back" onClick={() => navigate(-1)}>
+            <Icon icon={faChevronLeft} />
+          </button>
           <div className="ah-title">{head.title}</div>
-          {head.sub && <div className="ah-sub">{head.sub}</div>}
-        </div>
-        <button className="app-header-ico" aria-label="Settings" onClick={() => navigate("/settings")}>
-          ⚙️
-        </button>
-      </header>
+        </header>
+      )}
 
       <main className="main">
         <Outlet />
@@ -140,19 +161,17 @@ export function Layout() {
             data-nav={item.to}
             className={({ isActive }) => `tab${isActive ? " active" : ""}`}
           >
-            <span className="tab-ico">{item.tab}</span>
+            <span className="tab-ico"><Icon icon={item.icon} /></span>
             {item.label}
           </NavLink>
         ))}
         <NavLink to="/more" data-nav="/more" className={`tab${onMore ? " active" : ""}`}>
-          <span className="tab-ico">☰</span>
-          More
+          <span className="tab-ico"><Icon icon={faEllipsis} /></span>
+          Extras
           {moreBadge > 0 && <span className="tab-badge">{moreBadge}</span>}
         </NavLink>
       </nav>
 
-      {/* Key by announcement id so a fresh run remounts the toast and replays
-          its entrance animation even if one is already showing. */}
       <RunToast key={runAnnouncement?.id ?? "none"} />
     </div>
   );
@@ -167,7 +186,7 @@ function SidebarLink({ item, counts }: { item: NavItem; counts: Record<BadgeKey,
       data-nav={item.to}
       className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}
     >
-      <span>{item.icon}</span>
+      <span className="nav-ico"><Icon icon={item.icon} /></span>
       {item.label}
       {item.badge && count > 0 && <span className="nav-badge">{count}</span>}
     </NavLink>

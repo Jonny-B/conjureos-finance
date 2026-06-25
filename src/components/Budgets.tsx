@@ -3,6 +3,7 @@ import { useFinance, useCategoryMap } from "../store/FinanceContext";
 import type { Budget, BudgetProgress } from "../api/types";
 import { suggestBudgets, type BudgetSuggestion } from "../analytics/budgetSuggest";
 import { formatCurrency, todayISO } from "../lib/format";
+import { Icon, categoryIcon, faWandMagicSparkles, faXmark } from "../lib/icons";
 import { Spinner } from "./common";
 
 function daysLeftInMonth(): number {
@@ -106,7 +107,7 @@ export function Budgets() {
         </div>
         <div className="row" style={{ gap: 8 }}>
           <button className="cui-button cui-button--ghost btn-sm" onClick={previewSuggestions}>
-            {suggestions ? "Hide suggestions" : "✨ Build from history"}
+            {suggestions ? "Hide suggestions" : <><Icon icon={faWandMagicSparkles} /> Build from history</>}
           </button>
         </div>
       </div>
@@ -192,7 +193,7 @@ export function Budgets() {
                       .filter((c) => c.id !== "cat_income")
                       .map((c) => (
                         <option key={c.id} value={c.id}>
-                          {c.icon} {c.name}
+                          {c.name}
                         </option>
                       ))}
                   </select>
@@ -209,14 +210,13 @@ export function Budgets() {
               <div className="empty">No budgets yet. Add one to track a category.</div>
             ) : (
               rows.map((r) => {
-                const cat = catMap.get(r.budget.categoryId);
                 const over = r.spentCents > r.limitCents;
                 const p = Math.min(100, Math.round(r.ratio * 100));
                 const barColor = over ? "var(--bad)" : r.ratio > 0.8 ? "var(--warn)" : r.color;
                 return (
                   <div key={r.budget.id} className="cat-budget-row">
-                    <span className="cat-ico" style={{ background: `color-mix(in srgb, ${r.color} 22%, transparent)` }}>
-                      {cat?.icon ?? "•"}
+                    <span className="cat-ico" style={{ background: `color-mix(in srgb, ${r.color} 22%, transparent)`, color: r.color }}>
+                      <Icon icon={categoryIcon(r.budget.categoryId)} />
                     </span>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div className="row between" style={{ marginBottom: 5 }}>
@@ -232,7 +232,7 @@ export function Budgets() {
                         {formatCurrency(r.spentCents)} of {formatCurrency(r.limitCents)}
                       </div>
                     </div>
-                    <button className="cui-button cui-button--ghost btn-sm" onClick={() => remove(r.budget)} aria-label="Remove budget">✕</button>
+                    <button className="cui-button cui-button--ghost btn-sm" onClick={() => remove(r.budget)} aria-label="Remove budget"><Icon icon={faXmark} /></button>
                   </div>
                 );
               })
