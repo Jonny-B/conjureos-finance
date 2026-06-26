@@ -1,5 +1,10 @@
 # Conjure Finance
 
+> **Status: ⏸️ paused** (2026-06-25) — development is on hold while we focus on
+> the ConjureOS platform + Recipe app, and the app has been removed from the dev
+> and prod App Stores. See [`STATUS.md`](STATUS.md) for the full picture and how
+> to resume.
+
 A privacy-first personal finance app for ConjureOS — a Mint / Rocket Money
 clone with category breakdowns, spending charts, transaction search, budgets,
 and an **AI orchestrator that categorizes your transactions for you** and only
