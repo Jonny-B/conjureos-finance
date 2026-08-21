@@ -207,8 +207,18 @@ that case ship a **normal version bump**, not a first publish.
 > where o.bucket_id = 'store-apps'
 >   and not exists (
 >     select 1 from public.store_app_versions v where v.html_storage_key = o.name
+>   )
+>   and not exists (
+>     select 1 from public.store_apps sa where sa.html_storage_key = o.name
 >   );
 > ```
+>
+> Both exclusions are needed: `store_app_versions.html_storage_key`
+> (`032_app_versioning.sql:36`) holds the raw `storage.objects.name` — that is
+> exactly how `023_store_apps_storage_visibility.sql:31` joins them — **and**
+> `public.store_apps` carries its own `html_storage_key` (`005_app_store.sql:24`,
+> still rewritten by rollback at `032:285`). Omitting the second produces false
+> positives.
 >
 > A non-zero result is a general housekeeping finding, not evidence about
 > Finance. Treat the storage half of the original "verified 0" claim as
@@ -285,33 +295,51 @@ quiet killer and is described in full in `finance-known-gaps` item 1.
    `plaid-*` functions 401 a store-installed app, because the kernel refuses to
    hand it a JWT.
 
-### Blocker 1 — the LLC, made concrete
+### Blocker 1 — the LLC. **The evidence says it may already be resolved.**
 
-Plaid production access is granted to a **legal entity**: the concrete step is a
-**Plaid production-access request with company verification** (legal name,
-entity details, use-case description) from the Plaid dashboard, upgrading the
-account from Sandbox. Nothing in this repo can advance that.
+**Do not assume this blocker still stands.** It was recorded on 2026-06-24, and
+the repo has moved since. Check before you plan around it.
 
-**Where LLC status is tracked: nowhere systematic — the owner is the authority.**
-Be honest about this rather than hunting. The only written trace is
-`ConjureOS/OPEN_QUESTIONS.md:31-37` ("Set prod finance secrets when Plaid goes
-live (after the LLC clears)"), which records the *consequence*, not the status.
+**What the entity is, and what the record says.** The blocker is that Plaid
+production access is granted to a **legal entity**. The entity being formed is
+an **Ohio LLC, `ConjureOS LLC`** — `ConjureOS/STATUS_ARCHIVE.md:15` and again at
+`:83` record, verbatim, "Owner in-progress: Ohio LLC `ConjureOS LLC` filing."
+`DECISIONS_ARCHIVE.md:107` gates the legal feature flag on the same thing ("LLC
++ DMCA agent + NCMEC + counsel done").
 
-**The closest observable proxy** is `ConjureOS/LEGAL_ACTIVATION.md` — the Phase
-43 legal go-live checklist. It does **not** track the LLC, but its step 1
-requires filling `[Legal Entity]` and `[Jurisdiction]` placeholders across
-`public/terms.html`, `privacy.html`, `refund.html`, `dmca.html` and
-`report.html`, which cannot be done until an entity exists. So:
+**And the entity name is already in the shipped legal pages.** All five of
+`public/{terms,privacy,refund,dmca,report}.html` on `ConjureOS origin/dev`
+contain the literal string **"ConjureOS LLC"** — e.g. `public/terms.html:5`,
+"ConjureOS LLC — the legal name operating ConjureOS". The `LEGAL_ACTIVATION.md`
+step-1 placeholders `[Legal Entity]` and `[Jurisdiction]` are **gone**:
 
 ```
-# In the ConjureOS checkout. Matches remaining => no entity has been filled in yet.
+# In the ConjureOS checkout (make sure you are on origin/dev — see step 1).
 grep -rnE '\[(Legal Entity|Jurisdiction)\]' public/
 ```
 
-*Idempotent, read-only.* Matches ⇒ the entity almost certainly has not landed;
-zero matches ⇒ an entity exists and it is worth asking the owner directly
-whether Plaid production was requested. **Ask the owner before acting either
-way** — this is a proxy, not a source of truth.
+*Idempotent, read-only.* **This returns ZERO matches today** — verified against
+`origin/dev` @ `72bbbdf`. Only `[Effective Date]` remains outstanding (in
+`terms`, `privacy`, `refund`, `dmca`).
+
+**What that does and does not prove.** It is good evidence the **entity landed**.
+It is **not** evidence that **Plaid production access was granted** — those are
+two separate steps, and the second one leaves no trace in this repo at all. The
+only thing tracked in-repo is the *consequence* of the unblock:
+`ConjureOS/OPEN_QUESTIONS.md:35-41` ("Set prod finance secrets when Plaid goes
+live (after the LLC clears)").
+
+**So: ask the owner two questions, in this order.**
+
+1. **Did the Ohio `ConjureOS LLC` filing complete?** (Evidence says probably yes.)
+2. **Has a Plaid production-access request been submitted or granted?** The
+   concrete step is a **production-access request with company verification**
+   (legal name, entity details, use-case description) from the Plaid dashboard,
+   upgrading the account off Sandbox. Nothing in either repo can advance it.
+
+If both are yes, blocker 1 is **clear** and the work is the prod-secrets runbook
+(`finance-restart-checklist` step 3). Blocker 2 — the auth gate — stands
+regardless and is unaffected by any of this.
 
 ### Consequences of blocker 1, stated exactly
 
@@ -366,7 +394,7 @@ slot and implies a capability the app does not have.
   (`src/api/types.ts:55-61`), the `savings_goal` `RecordKind`
   (`src/api/sync/transport.ts:20`), `listSavingsGoals` /`upsertSavingsGoal` /
   `deleteSavingsGoal` on the API contract (`src/api/contract.ts:85-87`), their
-  mock implementations (`src/api/mock/mockApi.ts:162-181`), the synced-path
+  mock implementations (`src/api/mock/mockApi.ts:162-182`), the synced-path
   branch (`src/api/synced/syncedApi.ts:92`) and `SEED_GOALS`
   (`src/api/mock/data.ts:46`) are all still there. **This is intentional**: the
   cut was a product/UI decision, and leaving the plumbing means re-adding Goals
@@ -411,10 +439,19 @@ ConjureOS `PHASE_36_DESIGN.md` → "Finance data security".
 ```
 cd /home/user/conjureos-finance && git checkout dev && git pull
 node -p "require('./package.json').version"
+
+# BOTH repos are off origin/dev. The ConjureOS checkout is on a feature branch
+# that is NOT an ancestor of dev (dozens of files differ, including
+# kernel/defaultApps.ts and admin-docs/docs-content.ts).
+cd /home/user/ConjureOS && git fetch && git checkout dev && git pull
+git rev-parse --short HEAD
 ```
 Expected output: `Switched to branch 'dev'` (or `Already on 'dev'`) and
-`0.5.3` or later. If it prints `0.4.0` you are still on the stale branch and
-every file you read will be wrong.
+`0.5.3` or later for finance. If it prints `0.4.0` you are still on the stale
+branch and every file you read will be wrong. For ConjureOS, expect a SHA at or
+after `72bbbdf` — every backend line number in this document is pinned there.
+Reading the backend from the feature branch will silently give you different
+files.
 
 **2. Confirm the app still builds and passes — *idempotent*.**
 
@@ -440,8 +477,20 @@ with a clean console. That single self-contained file is what the store ingests;
 `FINANCE_DEK`, back it up in a password manager **first**, then set
 `FINANCE_DEK`, `FINANCE_DEK_ID=v1`, production `PLAID_CLIENT_ID` /
 `PLAID_SECRET`, `PLAID_ENV=production` on the prod project. Expected output:
-`Finished supabase secrets set.` Secrets are read at invocation, so no redeploy
-is needed. **Do this yourself; the prod key must never transit an AI session.**
+`Finished supabase secrets set.`
+
+**Then REDEPLOY the finance functions** (or wait for the isolates to recycle).
+`FINANCE_ENCRYPTION.md:57-58` says no redeploy is needed; **do not believe it**
+— its own rotation steps redeploy (`:120`, `:140`), and the code explains why:
+`fieldCrypto.ts:66-89` memoizes the keyring in a module-level `keyringPromise`,
+and the promise is assigned **before** it can reject (`:69`), so a **failed**
+keyring is cached for the isolate's entire life. Prod has no key today, so the
+sequence a restarter actually hits is: call the function → rejection cached →
+`supabase secrets set` → call again → **the same `FINANCE_DEK is not set` error
+from the warm isolate, with the secret correctly set**. It looks exactly like
+"the secret didn't take". It did; the isolate is stale. Redeploy.
+
+**Do this yourself; the prod key must never transit an AI session.**
 The destructive edge: overwriting an existing `FINANCE_DEK` after real rows have
 been written makes every one of them permanently unreadable. Setting it on a
 project that has never written a finance row is safe and rerunnable.
@@ -478,8 +527,21 @@ every finance function requires a caller JWT (`finance-read/index.ts:41-51`,
      in-process; it is deployed `verify_jwt = false` because the minted token is
      not a Supabase JWT (`supabase/functions/recipes-db/index.ts:1-21`). Applying
      the same Phase 16c pattern to `finance-read` keeps Finance a normal store
-     app and never hands it the user's Supabase session. **This is the option to
-     evaluate first.**
+     app and never hands it the user's Supabase session, and it is the sanctioned
+     route: `PHASE_36_DESIGN.md:47` (invariant I2) explicitly blesses
+     audience-scoped minted tokens as how apps reach a backend. **This is the
+     option to evaluate first — but price it honestly.**
+
+     **What it costs.** `recipes-db` runs `verify_jwt = false` and executes as the
+     **service role**, with ownership enforced in application code by
+     `creator_id` (`recipes-db/index.ts:9-10`, `:19-21`). Adopting that shape for
+     `finance-read` **gives up the property this doc advertises as a security
+     feature two sections up** — that it reads "only their rows through an
+     RLS-scoped anon client, no `service_role`" (`finance-read/index.ts:44-48`).
+     Per-user isolation would move from Postgres RLS to a hand-written
+     `eq("user_id", sub)`, in the one function that decrypts bank data. That is
+     an acceptable trade, but it is a **real change to security layer F2** and
+     must be recorded in `DECISIONS.md`, not inherited by accident.
    - **(c) Proxy finance reads through a host bridge** so the app never holds a
      token at all. Most work, strongest isolation.
 
@@ -491,13 +553,13 @@ step 5.** Build a `RestFinanceApi` that maps `finance-read`'s
 `src/api/index.ts:28-42` behind a third mode, and fill in `PlaidBankProvider`
 (`src/sync/bankProvider.ts:92-109`) against `plaid-link-token` →
 `plaid-exchange` → `plaid-sync` → `plaid-unlink`. **Mind both unit conversions**
-— sign *and* scale, see `finance-known-gaps` item 13.
+— sign *and* scale, see `finance-known-gaps` item 15.
 
-**7. Fix the stale end-to-end-encryption messaging — *idempotent*.** Four
+**7. Fix the stale end-to-end-encryption messaging — *idempotent*.** **Five**
 surfaces claim the server cannot read your data: `README.md` design-goal
-bullets, the sidebar badge at `src/components/Layout.tsx:126`, and **two**
-separate lines in `src/components/Settings.tsx:87-94` (the `Encryption` line and
-the `What the server stores` line plus its paragraph). True of the mock and of
+bullets, the sidebar badge at `src/components/Layout.tsx:126`, **two** separate
+lines in `src/components/Settings.tsx:87-94` (the `Encryption` line and the
+`What the server stores` line plus its paragraph), and `.env.example:3`. True of the mock and of
 the abandoned E2E prototype; **not** true of the Plaid path that shipped. Fix
 before any user sees live data — an inaccurate privacy claim is a liability, not
 a cosmetic bug.
@@ -510,8 +572,15 @@ first publish or a normal version bump.
 `store_apps` row was deleted, so the existing CI workflow fails with
 `No existing store app found for slug "finance"`. Full runbook, including the
 env block, working directory, dry run and expected success line, in
-`finance-ci-publishing`. Also set the `CONJUREOS_REPO_TOKEN` secret on the
-finance repo, which CI needs and which was never added.
+`finance-ci-publishing`. Two prerequisites CI needs and does not have:
+
+- Set the **`CONJUREOS_REPO_TOKEN`** secret on the finance repo — never added.
+- **Fix the changelog step first (`conjureos-finance#14`).** This step promises
+  "a published Release ships to prod"; today that path inlines the release body
+  into a `run:` block (`publish-store.yml:69-73`), so it is a script injection
+  *and* it crashes on an ordinary backtick. Copy the recipes/fitness `env:`
+  form — `finance-ci-publishing` root cause #3 has it verbatim. Until then,
+  prefer the `workflow_dispatch` (dev) path and treat release→prod as broken.
 
 ---
 ## Architecture
@@ -542,7 +611,7 @@ data came from memory, ciphertext, or a bank.
 ```
 
 Selection happens in exactly one place — `buildFinanceApi()` at
-`src/api/index.ts:28-41`, driven by `VITE_FINANCE_API` (`mock` | `synced`,
+`src/api/index.ts:28-42`, driven by `VITE_FINANCE_API` (`mock` | `synced`,
 default `mock`).
 
 > **Read this before trusting the diagram.** The `synced` branch targets the
@@ -583,7 +652,7 @@ default `mock`).
   `finance-restart-checklist` step 5.
 - `auth.whoami()` — the Phase-30g safe identity subset granted to *all* apps
   (`signedIn`, `email`, `persona`, `isAdmin`), ungated at
-  `kernel/index.ts:1936-1945`. Drives the sidebar user badge — which is why
+  `kernel/index.ts:1942-1959`. Drives the sidebar user badge — which is why
   identity works today while data access would not.
 - `notify` — foreground alert delivery (`host.ts:122-130`), fired from
   `Layout.tsx:93`. Background push (app closed) is an unbuilt backend seam:
@@ -657,7 +726,7 @@ an adapter — this is where money silently comes out wrong:
   Same for **`finance.accounts`** `name`, `official_name`, `current_balance`,
   `available_balance`. You cannot read or aggregate these in SQL.
 - **Still `numeric(18,2)`:** only `budgets.amount` (`035:173`) and
-  `recurring.average_amount` (`035:201`).
+  `recurring.average_amount` (`035:200`).
 - **On the wire**, `finance-read` hands back **decrypted numbers** via
   `decryptNumber` (`fieldCrypto.ts:133-136`) — a decimal count of **currency
   units** (dollars), because that is what Plaid sent and what was encrypted.
@@ -868,10 +937,31 @@ not end-to-end, and the product must not claim that it is.**
   `category_primary`, `category_detailed`, `user_category`;
   `finance.accounts` — `name`, `official_name`, `current_balance`,
   `available_balance`. They become `text` because they hold envelopes.
-- **Deliberately plaintext:** ids, `plaid_*_id`, `posted_at`/`authorized_at`,
-  `iso_currency_code`, `pending`, `payment_channel`, account `mask` (last 4),
-  `type`/`subtype` — needed for sync, sorting and range queries, and low
-  sensitivity.
+- **Deliberately plaintext, within those two tables:** ids, `plaid_*_id`,
+  `posted_at`/`authorized_at`, `iso_currency_code`, `pending`,
+  `payment_channel`, account `mask` (last 4), `type`/`subtype` — needed for sync,
+  sorting and range queries, and low sensitivity.
+- **NOT ENCRYPTED AT ALL — two entire tables.** Migration 088 touches only
+  `transactions` and `accounts` (`088:29-38`). The other two `finance.*` tables
+  holding user data are fully plaintext, and a reader whose question is "what
+  would a stolen dump expose?" needs to see them here rather than infer their
+  absence:
+  - **`finance.budgets`** — `category` (`035:172`) and `amount numeric(18,2)`
+    (`035:173`), with full client CRUD (`035:188`). **A stolen dump yields the
+    user's category-by-category budget profile in the clear** — how much they
+    intend to spend on what. That is a behavioural profile, and it is exposed
+    today.
+  - **`finance.recurring`** — `merchant_name text` **in plaintext** (`035:199`)
+    and `average_amount numeric(18,2)` (`035:200`). `merchant_name` is *the same
+    data class the whole encryption layer exists to protect*. Nothing populates
+    this table today (see `finance-known-gaps` item 8), so nothing leaks from it
+    yet — but **whoever closes that gap by populating it will silently write
+    plaintext merchant names beside encrypted ones.** Decide the encryption
+    question *before* populating, not after.
+- **One structural leak, for completeness:** AES-GCM is unpadded, so ciphertext
+  length reveals plaintext length — the digit count of an amount, the character
+  count of a merchant name — in exactly the offline-dump scenario this layer
+  defends against. Minor next to the two plaintext tables, but real.
 - **Migration 088 is idempotent and data-safe**: it only alters a column whose
   type is not already `text`, and the tables were empty on first apply, so there
   was no data migration.
@@ -890,6 +980,29 @@ generate a new key → promote it to current and demote the old to
 encrypted column → **only then** unset `FINANCE_DEK_OLD` (**destructive**: any
 row still on the old key becomes permanently unreadable). No downtime, no data
 loss, if you follow that order.
+
+**Two traps the runbook does not flag, both in its middle step.**
+
+1. **Step 3 has no tool — it is pseudocode.** `FINANCE_ENCRYPTION.md:143-171` is
+   headed "Re-encrypt script (step 3)" and its body literally says
+   "*Pseudocode of the loop*". No `finance-reencrypt.mjs` exists anywhere in the
+   repo. **You will write it**, and you must add pagination the sketch omits —
+   its `select` (`FINANCE_ENCRYPTION.md:161`) is unpaginated, so PostgREST's
+   default 1000-row cap would silently re-encrypt only the first page. Step 4's
+   `like 'v1.%'` verify is the only thing that would catch that, which is why
+   step 4 is non-negotiable.
+2. **Fix gap 6 first, or the loop dies part-way.** The pseudocode decrypts
+   `user_category` (`FINANCE_ENCRYPTION.md:157`) — the one column a client can
+   write plaintext into (`finance-known-gaps` item 6). A single plaintext value
+   throws mid-run, leaving rows split across two keys.
+
+**One more consequence of the memoized keyring** (`fieldCrypto.ts:66-89`, see
+`finance-restart-checklist` step 3): after rotation step 2 promotes the new key,
+a **warm isolate keeps encrypting under the old one** until it recycles. Those
+rows are readable right up until step 5 drops `FINANCE_DEK_OLD` — and then they
+are not. **Redeploy after step 2**, exactly as the runbook's own
+`# redeploy` comments say, and re-run the step-4 verify immediately before
+step 5.
 
 **Back up `FINANCE_DEK` out of band.** It is not in the database, so a DB backup
 alone cannot restore readability, and a dated DB restore is only useful paired
@@ -1012,8 +1125,20 @@ Plaid body.
 
 **The outstanding action is therefore clerical, not engineering: close #326.**
 Note before closing that the issue body also carries an **unrelated** functional
-finding — `claimUsername` (`src/platform/userProfile.ts:491`) silently no-ops for
-non-admins — which is **not** fixed and should be split into its own issue.
+finding — `claimUsername` silently no-ops for non-admins — which is **not**
+fixed and should be split into its own issue.
+
+> **Verify that one from source too, not from the issue.** `claimUsername` is
+> `src/platform/userProfile.ts:456-485` on the pinned tree (the bare
+> `.update({ username }).eq("user_id", …)` is `:474-477`); the issue body's
+> `:491` is a June-vintage number that no longer points at the function. The
+> **substance holds**, and here is the independent evidence so the next reader
+> need not trust #326 either: across every migration touching `user_profiles`,
+> the only UPDATE policy is `007_admin.sql:82` `"admins update profiles"`. There
+> is no self-update policy, so a non-admin's claim filters to **zero rows** and
+> returns a false success. *(This doc previously carried the stale `:491` —
+> exactly the failure it warns about, one layer down. Re-derive line numbers,
+> not just claims.)*
 
 **Also still open:** `SECURITY_FIXES.md` **L4** (low) — Plaid `error_message` is
 forwarded to the client verbatim (verbose; no credential echo observed):
@@ -1091,17 +1216,82 @@ Run the one-time bootstrap with --first-publish`. **The composite action has no
 `--first-publish` support** (see its arg assembly,
 `.github/actions/publish-anchor-app/action.yml:163-188`), so **CI cannot create
 the listing**. Direct `store_apps` INSERT is blocked by
-`085_store_apps_publish_authority.sql:32-41`; the row is created server-side by
+`085_store_apps_publish_authority.sql:32-36`; the row is created server-side by
 the `store-version` Edge Function's `action:"create"`.
+
+**Root cause #3 — the release→prod path is unreliable AND is a shell injection
+(`conjureos-finance#14`, open, labeled `security`/`ci`).** The "Resolve
+changelog" step interpolates user-controlled text **into the script body** of a
+`run:` block:
+
+```yaml
+# .github/workflows/publish-store.yml:65-74
+- name: Resolve changelog
+  id: changelog
+  run: |
+    if [ "${{ github.event_name }}" = "release" ]; then
+      text="${{ github.event.release.body }}"                     # :69
+      [ -z "$text" ] && text="${{ github.event.release.name }}"    # :70
+      [ -z "$text" ] && text="${{ github.event.release.tag_name }}"# :71
+    else
+      text="${{ github.event.inputs.changelog }}"                 # :73
+```
+
+`${{ }}` is substituted before the shell ever runs, so a release body is
+**shell source** on a runner holding `CONJUREOS_REPO_TOKEN` and the publish
+credentials. Two consequences, and the second is the one you will hit first:
+
+1. **Injection.** GitHub's textbook script-injection pattern.
+2. **It simply breaks.** Any ordinary changelog containing a backtick, `"` or
+   `$` crashes the job. Recipes hit this for real — its workflow now carries the
+   comment that a release body reading *"I made this"* failed with
+   `made: command not found`.
+
+**This invalidates the release→prod promise made in
+`finance-restart-checklist` step 9 and in step 4 of the bootstrap runbook
+below.** Fix it before relying on either.
+
+**The fix already exists twice — copy it verbatim.** Both sibling anchor repos
+pass the user-controlled fields as **environment variables** and read them as
+`$VAR`, which is injection-safe:
+
+```yaml
+# conjureos-app-recipes/.github/workflows/publish-store.yml:44-56
+  env:
+    REL_BODY: ${{ github.event.release.body }}
+    REL_NAME: ${{ github.event.release.name }}
+    REL_TAG: ${{ github.event.release.tag_name }}
+    DISPATCH_CHANGELOG: ${{ github.event.inputs.changelog }}
+  run: |
+    if [ "${{ github.event_name }}" = "release" ]; then
+      text="$REL_BODY"
+      [ -z "$text" ] && text="$REL_NAME"
+      [ -z "$text" ] && text="$REL_TAG"
+    else
+      text="$DISPATCH_CHANGELOG"
+    fi
+```
+
+`conjureos-fitness` took the same fix (DECISIONS 2026-06-21). Finance never got
+it.
 
 ### First-publish bootstrap runbook
 
-Do this **once**, by hand, from the **ConjureOS** checkout. After it succeeds,
-normal CI version bumps work again.
+Do this by hand from the **ConjureOS** checkout. After it succeeds, normal CI
+version bumps work again.
+
+**Run steps 2–3 once PER PROJECT — the listing was destroyed on both.** A
+bootstrap on dev does nothing for prod: `publish-app.mjs` resolves the row per
+project (`:410-416`), and the workflow itself has two separate publish steps
+with per-project refs, anon keys and bot passwords
+(`publish-store.yml:82-106`). Do **dev first**
+(`mqpvjlsywrptefgwuztn`, dev anon key, `PUBLISH_BOT_DEV_PASSWORD`), verify a
+fresh install works, and only then repeat for **prod**
+(`ntgelbtepecqsqloxmct`, prod anon key, `PUBLISH_BOT_PROD_PASSWORD`).
 
 **Step 1 — build the bundle in the FINANCE repo.** *Idempotent.*
 ```
-cd /path/to/conjureos-finance
+cd /home/user/conjureos-finance
 npm ci && npm run build:inline
 ```
 Expected output: ends with `✓ built in <n>s`; `dist/index.html` exists and is
@@ -1114,8 +1304,16 @@ version of this command silently omits, and the `--html` / `--package-json`
 paths are relative to your cwd — which is now ConjureOS, not finance — so use
 **absolute paths**.
 
+> **Alternative to the bot password: a pre-minted token.** `PUBLISH_BOT_EMAIL` /
+> `PUBLISH_BOT_PASSWORD` are only required on the password path — set
+> `PUBLISH_BOT_ACCESS_TOKEN` instead and the script skips both
+> (`publish-app.mjs:114`, `:116-123`). That is exactly the "service-role/OTP
+> backdoor" (`mint-bot-token.mjs`) used for the `0.5.3` publishes, and it is
+> worth knowing because the bot password may no longer be recoverable while the
+> mint path still is.
+
 ```
-cd /path/to/ConjureOS
+cd /home/user/ConjureOS
 export SUPABASE_URL="https://<project-ref>.supabase.co"
 export SUPABASE_ANON_KEY="<the project's anon key>"
 export PUBLISH_BOT_EMAIL="conjureosbot@gmail.com"
@@ -1129,8 +1327,8 @@ node scripts/publish-app.mjs --dry-run \
   --tags finance \
   --visibility public \
   --changelog "Initial version" \
-  --html /abs/path/to/conjureos-finance/dist/index.html \
-  --package-json /abs/path/to/conjureos-finance/package.json
+  --html /home/user/conjureos-finance/dist/index.html \
+  --package-json /home/user/conjureos-finance/package.json
 ```
 Expected output: a header line `ConjureOS anchor-app publish — DRY RUN`
 (`publish-app.mjs:376`) followed by `[dry-run] Would CREATE store_apps row for
@@ -1141,7 +1339,7 @@ ship a normal version bump.**
 **Step 3 — the real bootstrap.** **DESTRUCTIVE on success, then refuses to
 rerun** — it creates a live public store listing, and a second run errors with
 `--first-publish given but an app already exists … Drop --first-publish to ship
-a new version.` (`publish-app.mjs:410-415`). Re-run the same command **without**
+a new version.` (`publish-app.mjs:410-416`). Re-run the same command **without**
 `--dry-run`.
 
 Expected output:
@@ -1163,6 +1361,12 @@ and slug lookup checks featured rows first (`:228-234`).
 Actions → "Publish to ConjureOS App Store" → Run workflow ships to **dev**; a
 published GitHub Release ships to **prod**. Expected tail:
 `✓ Published "Conjure Finance" (finance) version N`.
+
+> **The release→prod half is not safe to use until root cause #3 is fixed.** Any
+> changelog containing a backtick, `"` or `$` breaks the job, and the release
+> body is shell source on a runner holding the publish credentials. Fix the
+> `env:` block first, or publish to prod via the bootstrap/backdoor path and
+> leave Releases alone.
 
 **Republish guards to know about** (`store-version/index.ts:~600-650`): it
 refuses a publish whose content SHA is unchanged, and refuses an `app_version`
@@ -1213,7 +1417,7 @@ repo, not this one.
 
 Net: the day someone finishes a live `FinanceApi`, every call returns
 `unauthorized`. Note the contrast with `auth.whoami()`, which **is** granted to
-all apps (`kernel/index.ts:1936-1945`) — that is why the signed-in user badge
+all apps (`kernel/index.ts:1942-1959`) — that is why the signed-in user badge
 works today while data access would not. Options and the `recipes-db` precedent
 are in `finance-restart-checklist` step 5. **Decide this before estimating
 anything else.**
@@ -1246,14 +1450,17 @@ Building the real `RestFinanceApi` over `finance-read` is net-new work.
 **3. `vault.unlock()` is never called, so `synced` mode is dormant anyway.**
 There is no passphrase UI. Even the E2E path could not be used today.
 
-**4. The app claims end-to-end encryption on FOUR surfaces, and it is not true
-of the shipped backend.** `README.md` design-goal bullets; the sidebar badge at
-`src/components/Layout.tsx:126`; and **two separate claims** in
-`src/components/Settings.tsx` — the `Encryption` line at `:88` ("End-to-end
+**4. The app claims end-to-end encryption on FIVE surfaces, and it is not true
+of the shipped backend.** Four are user-facing: `README.md` design-goal bullets;
+the sidebar badge at `src/components/Layout.tsx:126`; and **two separate claims**
+in `src/components/Settings.tsx` — the `Encryption` line at `:88` ("End-to-end
 (AES-GCM, key never leaves device)") and the `What the server stores` line at
 `:90` ("Opaque ids + ciphertext only") with its paragraph at `:91-94` ("no
-merchant, amount, or category ever reaches the server in the clear"). Fix all
-four before any live data. This is a truthfulness issue, not a cosmetic one.
+merchant, amount, or category ever reaches the server in the clear"). The fifth
+is developer-facing and easy to miss because it is not on screen:
+**`.env.example:3`**, `"synced" -> end-to-end encrypted sync against the Supabase
+backend`. Fix all five before any live data. This is a truthfulness issue, not a
+cosmetic one.
 
 **5. `finance.delete_vault_secret` does not exist on dev or prod.**
 `plaid-unlink/index.ts:117` calls `svc.rpc("delete_vault_secret", …)`, but the
@@ -1299,27 +1506,49 @@ migration is `088_finance_field_encryption.sql`. Harmless, but it will send a
 reader to the wrong file (087 is the Recipes rating migration).
 
 **10. `fieldCrypto` has no test file in the repo.** `DECISIONS_ARCHIVE.md:71`
-describes it as "unit-tested incl. the rotation window", but no test file
-matching `fieldCrypto` / `encryptField` exists on `origin/dev`, `origin/main`,
-or the parked branch — only the module, `plaid-sync`, `finance-read` and
+describes it as "unit-tested incl. the rotation window" — and so does **PR
+#396's own body**, which is the stronger citation because **its file list (13
+files) contains no test file at all**: `fieldCrypto.ts`, migration 088, four
+edge functions, five docs, one research note. Independently: no file matching
+`fieldCrypto` / `encryptField` exists on `origin/dev`, `origin/main`, or the
+parked branch — only the module, `plaid-sync`, `finance-read` and
 `docs-content.ts` reference it. **Write the tests before trusting a key
 rotation**: the rotation window (an envelope written under `v1` decrypting via
 `FINANCE_DEK_OLD` while `v2` is current) is exactly the behavior you want proven
 before it runs against real data.
 
-**11. No Plaid webhook receiver exists.** `plaid-sync`'s header comments
+**11. `decryptNumber` has no NaN guard — the one seam that fails QUIETLY.**
+Everywhere else the encryption layer fails loudly and closed: a bad envelope
+throws and `finance-read` returns `500 decrypt_failed`, and `plaid-sync` cannot
+write plaintext because its encrypt `Promise.all`s (`:203-217`, `:311-325`) are
+unguarded, so a keyring failure rejects the request before any upsert. But
+`fieldCrypto.ts:133-136` returns `Number(s)` unchecked, and `JSON.stringify(NaN)`
+is `null` — so a value that *decrypts fine but is not numeric* comes back as a
+**silent `null` amount** in the response, not an error. Add a guard when you
+touch this.
+
+**12. No Plaid webhook receiver exists.** `plaid-sync`'s header comments
 anticipate a webhook caller ("Webhook (future) when Plaid fires
 `SYNC_UPDATES_AVAILABLE`"), but no function is wired to receive it. Today sync
 only happens when a client calls it. Background alerts depend on this.
 
-**12. `plaid-sync` caps a single call at `MAX_PAGES = 50`** (25k transactions,
+**13. `plaid-sync` caps a single call at `MAX_PAGES = 50`** (25k transactions,
 `plaid-sync/index.ts:252`) and reports `fully_synced` accordingly (`:376`); the
 cursor is persisted after **every** page, so re-running resumes safely. Also
 expect `202 product_not_ready` on brand-new items while Plaid backfills history
 — the client is meant to retry (`retry_after_ms: 2000`), not treat it as
 failure.
 
-**13. TWO unit conversions flip between client and server, not one.** The
+**14. The publish workflow interpolates user text into a `run:` block
+(`conjureos-finance#14`).** `.github/workflows/publish-store.yml:69` (and
+`:70`, `:71`, `:73`) inlines `${{ github.event.release.body }}` and friends into
+shell source on a runner holding the publish credentials. It is a script
+injection **and** it crashes on an ordinary backtick, so the release→prod path
+is unreliable. Recipes and fitness both fixed it with an `env:` block; finance
+did not. Full detail and the copy-paste fix in `finance-ci-publishing`, root
+cause #3.
+
+**15. TWO unit conversions flip between client and server, not one.** The
 client uses **negative = money out**, in **integer cents** (`types.ts:10`).
 Plaid — and therefore `finance.transactions.amount` and what `finance-read`
 returns — uses **positive = outflow** (`035:113-115`,
@@ -1340,7 +1569,7 @@ the money path.
 | --- | --- |
 | `STATUS.md` | The paused-state memo (owner-facing) |
 | `README.md` | **Carries stale E2E claims + names the retired backend repo** |
-| `.env.example` | **`VITE_SYNC_BASE_URL` points at the retired finance-backend project**; also `VITE_FINANCE_API`, `VITE_BANK_PROVIDER`, `VITE_INFERENCE_PROVIDER` |
+| `.env.example` | **`VITE_SYNC_BASE_URL` points at the retired finance-backend project**; `:3` is a fifth false-E2E claim. Defines `VITE_FINANCE_API`, `VITE_SYNC_BASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_INFERENCE_PROVIDER`, `VITE_ANTHROPIC_API_KEY`, `VITE_ANTHROPIC_MODEL` — note it does **not** define `VITE_BANK_PROVIDER`, which `bankProvider.ts:114` reads |
 | `src/App.tsx` | Routes; the `MemoryRouter` rationale |
 | `src/components/Layout.tsx` | Responsive shell, nav definitions, alert→notify bridge, the false E2E badge (`:126`) |
 | `src/components/Settings.tsx` | Two more false E2E claims (`:87-94`) |
@@ -1357,7 +1586,7 @@ the money path.
 | `src/enrich/merchant.ts` | `MerchantEnricher` seam |
 | `src/platform/host.ts` | ConjureOS bridge: SSO (`:90-98`, always null for this app), whoami, notify, action registration |
 | `src/store/FinanceContext.tsx` | App state + the three orchestrator action handlers |
-| `.github/workflows/publish-store.yml` | Store publish (needs `CONJUREOS_REPO_TOKEN`) |
+| `.github/workflows/publish-store.yml` | Store publish (needs `CONJUREOS_REPO_TOKEN`); **`:69-73` shell injection, issue #14** |
 
 **Backend, kernel and process — `Jonny-B/ConjureOS`, `origin/dev` @ `72bbbdf`**
 
@@ -1375,7 +1604,7 @@ the money path.
 | `supabase/functions/finance-read/` | The decrypt-on-read chokepoint |
 | `supabase/functions/recipes-db/` | **The minted-token precedent** for app→backend auth (`:1-21`) |
 | `supabase/functions/admin-docs/docs-content.ts` | **Port target** for this doc; existing `finance-encryption` entry at `:992-1010` |
-| `src/kernel/index.ts` | `BUILT_IN_APP_PATHS` (`:99-101`), the token gate (`:1967`), `whoami` (`:1936-1945`) |
+| `src/kernel/index.ts` | `BUILT_IN_APP_PATHS` (`:99-101`), the token gate (`:1967`), `whoami` (`:1942-1959`) |
 | `src/kernel/defaultApps.ts` | `DEFAULT_APPS` — the set `finance` is not in |
 | `src/platform/appStore.ts` | `STORE_TAGS` incl. the surviving `finance` tag (`:42`) |
 | `scripts/publish-app.mjs` | The publish CLI: env (`:32-36`), first-publish (`:294-370`), guards (`:410-415`) |
@@ -1391,6 +1620,15 @@ the money path.
 | `OPEN_QUESTIONS.md` | The parked prod-secrets reminder (`:31-37`) |
 | `TROUBLESHOOTING.md:433` | The `Script error.` / `MemoryRouter` fix |
 | `CLAUDE.md` | Runbook contract; §5 admin-docs own-commit rule |
+
+**Issue trackers**
+
+| Issue | What |
+| --- | --- |
+| `conjureos-finance` **#15** | "Restart blockers" — the tracking issue for the gaps in `finance-known-gaps`. Start here on resume. |
+| `conjureos-finance` **#14** | The `publish-store.yml` changelog injection (`finance-ci-publishing` root cause #3). Open, `security`/`ci`. |
+| ConjureOS **#326** | `plaid-exchange` logging — **code already fixed; close the issue**, splitting out its `claimUsername` half. |
+| ConjureOS **#387–#390** | Finance security layers F1/F2/F3/F5, all open, under umbrella **#268**. |
 
 **Parked branches (unmerged, still valid work)**
 
