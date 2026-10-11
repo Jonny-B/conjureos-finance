@@ -91,6 +91,14 @@ Three actions are exposed (manifest `conjureos.actions` + `registerHostActions`)
 - **`buildBudgetFromHistory`** — set monthly budgets from spending history
   ("set up my budget").
 
+### App type
+
+Finance is a **sealed** app (ConjureOS Phase 62): `package.json` →
+`conjureos` declares `"appType": "sealed"`, with `"editable": false` as the
+mirror that clients and stores predating `appType` still read. The AI changes
+nothing in it. It stays connected: the actions above are reachable from Chat
+and other apps. `src/__tests__/manifest.test.ts` pins the declaration.
+
 ## Analytics (`src/analytics/`)
 
 Pure, dependency-free functions over the transaction set — no Plaid, no storage,
