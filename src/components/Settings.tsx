@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useFinance } from "../store/FinanceContext";
 import { getTierContext, setTierContext, type InferenceBudget } from "../orchestrator";
 import { useHostUser } from "../platform/useHostUser";
+import { Icon, faUser } from "../lib/icons";
 import { BankConnections } from "./BankConnections";
 
 const API_MODE = (import.meta.env.VITE_FINANCE_API as string) || "mock";
@@ -38,7 +39,7 @@ export function Settings() {
         <div className="card-title">Account</div>
         <div className="row" style={{ gap: 14 }}>
           <span className={`avatar${user ? " on" : ""}`} style={{ width: 44, height: 44, fontSize: 18 }}>
-            {userLoading ? "…" : user ? (user.email?.[0]?.toUpperCase() ?? "U") : "👤"}
+            {userLoading ? "…" : user ? (user.email?.[0]?.toUpperCase() ?? "U") : <Icon icon={faUser} />}
           </span>
           <div style={{ minWidth: 0 }}>
             <div style={{ fontWeight: 700, fontSize: 15 }}>

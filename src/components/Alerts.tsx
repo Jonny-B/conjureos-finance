@@ -2,14 +2,24 @@ import { useEffect, useState } from "react";
 import { useFinance } from "../store/FinanceContext";
 import { detectRecurring } from "../analytics/recurring";
 import { computeAlerts, type FinanceAlert } from "../analytics/alerts";
+import {
+  Icon,
+  type IconDefinition,
+  faArrowTrendDown,
+  faTriangleExclamation,
+  faCircleExclamation,
+  faCalendarDay,
+  faArrowUp,
+  faCircleCheck,
+} from "../lib/icons";
 import { Spinner } from "./common";
 
-const ICON: Record<FinanceAlert["kind"], string> = {
-  low_balance: "📉",
-  near_budget: "🟡",
-  over_budget: "🔴",
-  upcoming_bill: "📅",
-  price_increase: "↑",
+const ICON: Record<FinanceAlert["kind"], IconDefinition> = {
+  low_balance: faArrowTrendDown,
+  near_budget: faTriangleExclamation,
+  over_budget: faCircleExclamation,
+  upcoming_bill: faCalendarDay,
+  price_increase: faArrowUp,
 };
 
 export function Alerts() {
@@ -51,7 +61,7 @@ export function Alerts() {
 
       {alerts.length === 0 ? (
         <div className="cui-card empty">
-          🎉 All clear. No alerts right now.
+          <Icon icon={faCircleCheck} /> All clear. No alerts right now.
           <div className="muted" style={{ marginTop: 8 }}>
             We’ll flag low balances, over-budget categories, upcoming bills and price hikes here.
           </div>
@@ -60,7 +70,7 @@ export function Alerts() {
         <div className="grid" style={{ gap: 10 }}>
           {alerts.map((a) => (
             <div key={a.id} className={`banner ${a.severity === "danger" ? "danger" : a.severity === "warn" ? "warn" : "info"}`}>
-              <span style={{ fontSize: 18 }}>{ICON[a.kind]}</span>
+              <span style={{ fontSize: 16 }}><Icon icon={ICON[a.kind]} /></span>
               <div>
                 <div style={{ fontWeight: 600 }}>{a.title}</div>
                 <div className="muted" style={{ fontSize: 13 }}>{a.message}</div>

@@ -1,20 +1,21 @@
 import { useState } from "react";
 import { useFinance } from "../store/FinanceContext";
 import type { Category } from "../api/types";
+import { CategoryChip } from "./common";
 
 const PALETTE = ["#22c55e", "#f97316", "#3b82f6", "#a855f7", "#ef4444", "#eab308", "#ec4899", "#06b6d4", "#14b8a6", "#8b5cf6"];
 
 export function Categories() {
   const { categories, api, refresh } = useFinance();
   const [name, setName] = useState("");
-  const [icon, setIcon] = useState("🏷️");
   const [color, setColor] = useState(PALETTE[0]);
 
   async function add() {
     if (!name.trim()) return;
-    await api.createCategory({ name: name.trim(), icon: icon || "🏷️", color, parentId: null });
+    // Icons are rendered from a Font Awesome map keyed by category id; custom
+    // categories fall back to a tag glyph, so the stored value is just a marker.
+    await api.createCategory({ name: name.trim(), icon: "tag", color, parentId: null });
     setName("");
-    setIcon("🏷️");
     refresh();
   }
 
@@ -35,10 +36,6 @@ export function Categories() {
       <div className="cui-card" style={{ marginBottom: 16 }}>
         <div className="card-title">New category</div>
         <div className="row wrap" style={{ gap: 10, alignItems: "flex-end" }}>
-          <div className="field" style={{ width: 70 }}>
-            <label>Icon</label>
-            <input className="cui-input" value={icon} maxLength={2} onChange={(e) => setIcon(e.target.value)} />
-          </div>
           <div className="field" style={{ flex: 1, minWidth: 160 }}>
             <label>Name</label>
             <input className="cui-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Pets" />
@@ -79,10 +76,7 @@ export function Categories() {
             {categories.map((c) => (
               <tr key={c.id}>
                 <td>
-                  <span className="cui-chip">
-                    <span className="dot" style={{ background: c.color }} />
-                    {c.icon} {c.name}
-                  </span>
+                  <CategoryChip category={c} />
                 </td>
                 <td className="faint">{c.isSystem ? "System" : "Custom"}</td>
                 <td style={{ textAlign: "right" }}>

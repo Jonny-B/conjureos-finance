@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useHostUser } from "../platform/useHostUser";
+import { Icon, faUser } from "../lib/icons";
 
 function initial(email: string | undefined): string {
   return email?.trim()?.[0]?.toUpperCase() ?? "?";
@@ -26,7 +27,7 @@ export function UserBadge() {
       title={signedIn ? `Signed in as ${user!.email ?? user!.id}` : "Account & privacy"}
     >
       <span className={`avatar${signedIn ? " on" : ""}`} aria-hidden>
-        {loading ? "…" : signedIn ? initial(user!.email) : "👤"}
+        {loading ? "…" : signedIn ? initial(user!.email) : <Icon icon={faUser} />}
       </span>
       <span className="user-badge-text">
         <span className="user-badge-name">{label}</span>

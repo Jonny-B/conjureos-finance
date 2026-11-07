@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useFinance } from "../store/FinanceContext";
 import { summarizeRun } from "../orchestrator";
+import { Icon, faRobot, faXmark } from "../lib/icons";
 
 // App-level confirmation that a categorization run happened — the visible
 // counterpart to the OS orchestrator driving the app from outside ("do
@@ -29,7 +30,7 @@ export function RunToast() {
 
   return (
     <div className="toast" role="status" aria-live="polite">
-      <span className="toast-mark">🤖</span>
+      <span className="toast-mark"><Icon icon={faRobot} /></span>
       <div className="toast-body">
         <div className="toast-title">
           {source === "orchestrator" ? "ConjureOS categorized for you" : "Categorization complete"}
@@ -49,7 +50,7 @@ export function RunToast() {
         )}
       </div>
       <button className="toast-close" onClick={dismissRun} aria-label="Dismiss">
-        ✕
+        <Icon icon={faXmark} />
       </button>
     </div>
   );
