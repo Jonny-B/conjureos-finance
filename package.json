@@ -1,9 +1,9 @@
 {
   "name": "conjureos-finance",
   "private": true,
-  "version": "0.5.5",
+  "version": "0.5.6",
   "type": "module",
-  "description": "Privacy-first personal finance app (Mint/Rocket Money clone) for ConjureOS. End-to-end encrypted; the server never sees your transactions.",
+  "description": "Personal finance app for ConjureOS. Paused: it runs on demo data kept on this device.",
   "conjureos": {
     "displayName": "Conjure Finance",
     "icon": "💰",

@@ -123,7 +123,7 @@ export function Layout() {
         </nav>
         <div className="nav-spacer" />
         <div className="nav-link faint sidebar-aux" style={{ fontSize: 11, cursor: "default" }}>
-          <Icon icon={faLock} /> End-to-end encrypted
+          <Icon icon={faLock} /> Demo data, kept on this device
         </div>
         <div className="sidebar-aux">
           <UserBadge />

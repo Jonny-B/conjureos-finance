@@ -81,7 +81,7 @@ export function More() {
 
       <div className="hint" style={{ marginTop: 16 }}>
         <Icon icon={faLock} />
-        <span>Your data is end-to-end encrypted. Ask ConjureOS to <em>"categorize this month"</em> any time.</span>
+        <span>Your data stays on this device. Ask ConjureOS to <em>"categorize this month"</em> any time.</span>
       </div>
     </>
   );
