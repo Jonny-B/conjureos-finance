@@ -70,7 +70,7 @@ export function Settings() {
         {!user && (
           <p className="muted" style={{ fontSize: 13, marginTop: 12 }}>
             As a ConjureOS default app, Conjure Finance reuses your OS session — it never asks for a
-            second login. Your encryption key is still derived locally and never shared with the host.
+            second login.
           </p>
         )}
       </div>
@@ -85,13 +85,10 @@ export function Settings() {
           <Line label="Data source" value={API_MODE === "synced" ? "Encrypted sync (Supabase)" : "Local mock (no backend)"} />
           <Line
             label="Encryption"
-            value={API_MODE === "synced" ? "End-to-end (AES-GCM, key never leaves device)" : "n/a — data is in-memory only"}
+            value={API_MODE === "synced" ? "Encrypted in the browser before upload (not end-to-end for bank data, which the server can read)" : "n/a: data is in memory only"}
           />
-          <Line label="What the server stores" value="Opaque ids + ciphertext only" />
           <p className="muted" style={{ fontSize: 13, marginTop: 12 }}>
-            Transactions are encrypted in your browser before sync. The backend keeps only opaque
-            ids and ciphertext it cannot read — no merchant, amount, or category ever reaches the
-            server in the clear.
+            This app shows demo data. Nothing is sent to a server, and it is gone when you reload.
           </p>
         </div>
 
